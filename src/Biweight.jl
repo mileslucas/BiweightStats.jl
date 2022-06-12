@@ -13,8 +13,12 @@ A module for robust statistics. The following methods are implemented
 """
 module Biweight
 
+using DocStringExtensions
 using Statistics
 
+"""
+$(SIGNATURES)
+"""
 function location(values; c=6, iters=10, tol=1e-6)
     T = eltype(values)
     ystar = zero(T)
@@ -40,6 +44,9 @@ function location(values; c=6, iters=10, tol=1e-6)
     return ystar
 end
 
+"""
+$(SIGNATURES)
+"""
 function scale(values; c=9)
     Δ = values .- median(values)
     mad = median(Iterators.map(abs, Δ))
@@ -60,6 +67,9 @@ function scale(values; c=9)
 end
 
 # biweight midvariance
+"""
+$(SIGNATURES)
+"""
 function midvariance(values; c=9)
     Δ = values .- median(values)
     mad = median(Iterators.map(abs, Δ))
@@ -79,5 +89,18 @@ function midvariance(values; c=9)
     return n * num / den^2
 end
 
+"""
+$(SIGNATURES)
+"""
+function midcovariance(X, Y=X; c=9)
+end
+
+"""
+$(SIGNATURES)
+"""
+function midcorrelation(X, Y=X; kwargs...)
+    cov = midcovariance(X, Y; kwargs...)
+    return cov[begin, end] / sqrt(cov[begin, begin] * cov[end, end])
+end
 
 end
