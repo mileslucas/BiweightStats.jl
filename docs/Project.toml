@@ -1,0 +1,3 @@
+[deps]
+BiweightStats = "5bf8a1e9-d5f8-4697-9608-80edd97af0ad"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
