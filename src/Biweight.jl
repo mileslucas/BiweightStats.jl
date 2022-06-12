@@ -15,6 +15,31 @@ module Biweight
 
 using Statistics
 
+function location(values; c=6, iters=10, tol=1e-6)
+    T = eltype(values)
+    ystar = zero(T)
+    ystar_old = ystar
+    num = zero(T)
+    den = zero(T)
+    for _ in 1:iters
+        Δ = values .- ystar
+        mad = median(Iterators.map(abs, Δ))
+        num = zero(T)
+        den = zero(T)
+        for (y, d) in zip(values, Δ)
+            u2 = (d / (c * mad))^2
+            u2 ≥ 1 && continue
+            w = (1 - u2)^2
+            num += w * y
+            den += w
+        end
+        ystar_old = ystar
+        ystar = num / den
+        isapprox(ystar, ystar_old, atol=tol) && break
+    end
+    return ystar
+end
+
 function scale(values; c=9)
     Δ = values .- median(values)
     mad = median(Iterators.map(abs, Δ))
@@ -35,7 +60,7 @@ function scale(values; c=9)
 end
 
 # biweight midvariance
-function midvariance(values; c=6)
+function midvariance(values; c=9)
     Δ = values .- median(values)
     mad = median(Iterators.map(abs, Δ))
     # init
