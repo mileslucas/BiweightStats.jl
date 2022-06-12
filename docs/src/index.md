@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = BiweightStats
+CurrentModule = Biweight
 ```
 
-# BiweightStats.jl
+# Biweight.jl
 
-[![Code](https://img.shields.io/badge/Code-GitHub-black.svg)](https://github.com/mileslucas/BiweightStats.jl)
-[![Build Status](https://github.com/mileslucas/BiweightStats.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/mileslucas/BiweightStats.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/B/BiweightStats.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
-[![Coverage](https://codecov.io/gh/mileslucas/BiweightStats.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/mileslucas/BiweightStats.jl)
-[![License](https://img.shields.io/github/license/mileslucas/BiweightStats.jl?color=yellow)](https://github.com/mileslucas/BiweightStats.jl/blob/main/LICENSE)
+[![Code](https://img.shields.io/badge/Code-GitHub-black.svg)](https://github.com/mileslucas/Biweight.jl)
+[![Build Status](https://github.com/mileslucas/Biweight.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/mileslucas/Biweight.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/B/Biweight.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
+[![Coverage](https://codecov.io/gh/mileslucas/Biweight.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/mileslucas/Biweight.jl)
+[![License](https://img.shields.io/github/license/mileslucas/Biweight.jl?color=yellow)](https://github.com/mileslucas/Biweight.jl/blob/main/LICENSE)
 
 ## API/Reference
 
@@ -16,9 +16,9 @@ CurrentModule = BiweightStats
 ```
 
 ```@autodocs
-Modules = [BiweightStats]
+Modules = [Biweight]
 ```
 
 ## Contributing and Support
 
-If you would like to contribute, feel free to open a [pull request](https://github.com/mileslucas/BiweightStats.jl/pulls). If you want to discuss something before contributing, head over to [discussions](https://github.com/mileslucas/BiweightStats.jl/discussions) and join or open a new topic. If you're having problems with something, please open an [issue](https://github.com/mileslucas/BiweightStats.jl/issues).
+If you would like to contribute, feel free to open a [pull request](https://github.com/mileslucas/Biweight.jl/pulls). If you want to discuss something before contributing, head over to [discussions](https://github.com/mileslucas/Biweight.jl/discussions) and join or open a new topic. If you're having problems with something, please open an [issue](https://github.com/mileslucas/Biweight.jl/issues).

@@ -1,6 +1,6 @@
-using BiweightStats
+using Biweight
 using Test
 
-@testset "BiweightStats.jl" begin
+@testset "Biweight.jl" begin
     # Write your tests here.
 end

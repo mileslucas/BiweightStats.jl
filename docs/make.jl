@@ -1,16 +1,16 @@
-using BiweightStats
+using Biweight
 using Documenter
 
-DocMeta.setdocmeta!(BiweightStats, :DocTestSetup, :(using BiweightStats); recursive=true)
+DocMeta.setdocmeta!(Biweight, :DocTestSetup, :(using Biweight); recursive=true)
 
 makedocs(;
-    modules=[BiweightStats],
+    modules=[Biweight],
     authors="Miles Lucas <mdlucas@hawaii.edu> and contributors",
-    repo="https://github.com/mileslucas/BiweightStats.jl/blob/{commit}{path}#{line}",
-    sitename="BiweightStats.jl",
+    repo="https://github.com/mileslucas/Biweight.jl/blob/{commit}{path}#{line}",
+    sitename="Biweight.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://mileslucas.github.io/BiweightStats.jl",
+        canonical="https://mileslucas.github.io/Biweight.jl",
         assets=String[],
     ),
     pages=[
@@ -19,6 +19,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/mileslucas/BiweightStats.jl",
+    repo="github.com/mileslucas/Biweight.jl",
     devbranch="main",
 )
