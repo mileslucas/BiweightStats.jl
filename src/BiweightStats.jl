@@ -19,7 +19,7 @@ u_i = \\frac{X_i - \\bar{X}}{c \\cdot \\mathrm{MAD}}
 ```
 
 ```math
-\\forall i \\quad\\mathrm{where}\\quad\\left| u_i \\right| < 1
+\\forall i \\quad\\mathrm{where}\\quad u_i^2 < 1
 ```
 
 The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of ``c=6`` means outliers further than ``\\sim 9\\sigma`` are clipped. In addition, in `BiweightStats`, we also skip `NaN`s.
@@ -72,13 +72,13 @@ function location(X; c=6, maxiter=10, tol=1e-6)
     den = zero(T)
     for _ in 1:maxiter
         Δ = X .- ystar
-        mad = median(Iterators.map(abs, Δ))
+        mad = median(Iterators.map(abs, Iterators.filter(!isnan, Δ)))
         num = zero(T)
         den = zero(T)
         for (y, d) in zip(X, Δ)
             isnan(d) && continue
             u2 = (d / (c * mad))^2
-            u2 ≥ 1 && continue
+            u2 > 1 && continue
             w = (1 - u2)^2
             num += w * y
             den += w
@@ -114,7 +114,7 @@ julia> scale(X)
 """
 function scale(X; c=6)
     Δ = X .- median(X)
-    mad = median(Iterators.map(abs, Δ))
+    mad = median(Iterators.map(abs, Iterators.filter(!isnan, Δ)))
     # init
     T = eltype(X)
     num = zero(T)
@@ -156,7 +156,7 @@ julia> midvar(X)
 """
 function midvar(X; c=6)
     Δ = X .- median(X)
-    mad = median(Iterators.map(abs, Δ))
+    mad = median(Iterators.map(abs, Iterators.filter(!isnan, Δ)))
     # init
     T = eltype(X)
     num = zero(T)
@@ -203,8 +203,8 @@ function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; c=6) where {V,S}
     length(X) == length(Y) || throw(DimensionMismatch("vectors must have same length"))
     Δx = X .- median(X)
     Δy = Y .- median(Y)
-    madx = median(Iterators.map(abs, Δx))
-    mady = median(Iterators.map(abs, Δy))
+    madx = median(Iterators.map(abs, Iterators.filter(!isnan, Δx)))
+    mady = median(Iterators.map(abs, Iterators.filter(!isnan, Δy)))
     # init
     T = promote_type(V, S)
     num = zero(T)
@@ -215,13 +215,13 @@ function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; c=6) where {V,S}
         (isnan(dx) || isnan(dy)) && continue
         u2 = (dx / (c * madx))^2
         v2 = (dy / (c * mady))^2
-        if u2 < 1
+        if u2 ≤ 1
             den1 += (1 - u2) * (1 - 5 * u2)
         end
-        if v2 < 1
+        if v2 ≤ 1
             den2 += (1 - v2) * (1 - 5 * v2)
         end
-        if u2 < 1 && v2 < 1
+        if u2 ≤ 1 && v2 ≤ 1
             num += dx * (1 - u2)^2 * dy * (1 - v2)^2
             n += 1
         end
