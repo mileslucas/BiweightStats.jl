@@ -35,15 +35,19 @@ The following statistics are defined as methods-
 
 * [`Biweight.location`]
 * [`Biweight.scale`]
-* [`Biweight.midvariance`]
-* [`Biweight.midcovariance`]
-* [`Biweight.midcorrelation`]
+* [`Biweight.midvar`]
+* [`Biweight.midcov`]
+* [`Biweight.midcor`]
 
 ## Related packages
 
-1. [RobustStats.jl](https://github.com/mrxiaohe/RobustStats.jl)
+1. [StatsBase.jl](https://github.com/JuliaStats/StatsBase.jl)
 
-    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`Biweight.midvariance`], although `bivar` does not have definitions for the statistics across axes of an array.
+    Contains a couple robust statistics, but has no overlapping functionality with this package.
+
+2. [RobustStats.jl](https://github.com/mrxiaohe/RobustStats.jl)
+
+    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`Biweight.midvar`], although `bivar` does not have definitions for the statistics across axes of an array.
 
 ## Contributing and Support
 
