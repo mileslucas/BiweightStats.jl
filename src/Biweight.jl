@@ -13,12 +13,16 @@ A module for robust statistics. The following methods are implemented
 """
 module Biweight
 
-using DocStringExtensions
 using Statistics
 
 """
-    $(SIGNATURES)
+    Biweight.location(X; c=6, maxiter=10, tol=1e-6)
 
+Iteratively calculate the biweight location, a robust measure of location.
+
+# Stopping Criteria
+
+The location will be refined until `maxiter` is reached or until the absolute change between estimates is below `tol`.
 
 """
 function location(X; c=6, maxiter=10, tol=1e-6)
@@ -48,13 +52,23 @@ function location(X; c=6, maxiter=10, tol=1e-6)
 end
 
 """
-$(SIGNATURES)
+    Biweight.scale(X; c=9)
+
+Compute the biweight midvariance of the variable.
+
+# References
+
+1. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidv.htm
+
+# See Also
+
+[`Biweight.midcor`](@ref), [`Biweight.midvar`](@ref), [`Biweight.midcov`](@ref)
 """
-function scale(values; c=9)
-    Δ = values .- median(values)
+function scale(X; c=9)
+    Δ = X .- median(X)
     mad = median(Iterators.map(abs, Δ))
     # init
-    T = eltype(values)
+    T = eltype(X)
     num = zero(T)
     den = zero(T)
     n = 0
@@ -70,15 +84,24 @@ function scale(values; c=9)
     return sqrt(n * num / (den * (den - 1)))
 end
 
-# biweight midvariance
 """
-$(SIGNATURES)
+    Biweight.midvar(X; c=9)
+
+Compute the biweight midvariance of the variable.
+
+# References
+
+1. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidv.htm
+
+# See Also
+
+[`Biweight.scale`](@ref), [`Biweight.midcor`](@ref), [`Biweight.midcov`](@ref)
 """
-function midvar(values; c=9)
-    Δ = values .- median(values)
+function midvar(X; c=9)
+    Δ = X .- median(X)
     mad = median(Iterators.map(abs, Δ))
     # init
-    T = eltype(values)
+    T = eltype(X)
     num = zero(T)
     den = zero(T)
     n = 0
@@ -93,10 +116,6 @@ function midvar(values; c=9)
 
     return n * num / den^2
 end
-
-"""
-$(SIGNATURES)
-"""
 
 function midcov(X::AbstractVector{T}; c=9) where T
     Δ = X .- median(X)
@@ -116,7 +135,21 @@ function midcov(X::AbstractVector{T}; c=9) where T
     return n * num / den^2
 end
 
+"""
+    Biweight.midcov(X::AbstractVecotr, [Y::AbstractVector]; c=9)
+
+Computes biweight midcovariance between the two vectors. If only one vector is provided the biweight midvariance will be calculated.
+
+# References
+
+1. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
+
+# See Also
+
+[`Biweight.scale`](@ref), [`Biweight.midvar`](@ref), [`Biweight.midcor`](@ref)
+"""
 function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; c=9) where {V,S}
+    length(X) == length(Y) || throw(DimensionMismatch("vectors must have same length"))
     Δx = X .- median(X)
     Δy = Y .- median(Y)
     madx = median(Iterators.map(abs, Δx))
@@ -146,6 +179,20 @@ function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; c=9) where {V,S}
     return n * num / (den1 * den2)
 end
 
+
+"""
+    Biweight.midcov(X::AbstractMatrix; dims=1, c=9)
+
+Computes the variance-covariance matrix using the biweight midcovariance. By default, each column is a separate variable, so an `(M, N)` matrix with `dims=1` will create an `(N, N)` covariance matrix. If `dims=2`, though, each row will become a variable, leading to an `(M, M)` covariance matrix.
+
+# References
+
+1. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
+
+# See Also
+
+[`Biweight.scale`](@ref), [`Biweight.midvar`](@ref), [`Biweight.midcor`](@ref)
+"""
 function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
     vardim = dims == 1 ? 2 : 1
     out = zeros(T, size(X, vardim), size(X, vardim))
@@ -169,12 +216,30 @@ function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
     return out
 end
 
+raw"""
+    Biweight.midcor(X::AbstractVector, Y::AbstractVector; c=9)
+
+Compute the correlation between two variables using the midvariance and midcovariances.
+
+```math
+\frac{\zeta_{xy}}{\zeta_{xx}\zeta_{yy}}
+```
+where $\zeta_{xx},\zeta_{yy}$ are the midvariances of each vector, and $\zeta_{xy}$ is the midcovariance of the two vectors.
+
+# References
+
+1. https://en.wikipedia.org/wiki/Biweight_midcorrelation
+2. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidcr.htm
+
+# See Also
+
+[`Biweight.midvar`](@ref), [`Biweight.midcov`](@ref), [`Biweight.scale`](@ref)
 """
-$(SIGNATURES)
-"""
-function midcor(X, Y=X; kwargs...)
-    cov = midcov(X, Y; kwargs...)
-    return cov[begin, end] / sqrt(cov[begin, begin] * cov[end, end])
+function midcor(X::AbstractVector, Y::AbstractVector; kwargs...)
+    sxx = midcov(X; kwargs...)
+    syy = midcov(X; kwargs...)
+    sxy = midcov(X, Y; kwargs...)
+    return sxy / sqrt(sxx * syy)
 end
 
 end
