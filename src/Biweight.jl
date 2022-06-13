@@ -1,4 +1,4 @@
-raw"""
+"""
     Biweight
 
 A module for robust statistics based on the biweight transform.[^1]
@@ -8,21 +8,21 @@ A module for robust statistics based on the biweight transform.[^1]
 The basis of the biweight transform is robust analysis, that is, statistics which are resilient to outliers while still efficiently representing a variety of underlying distributions. The biweight transform is based off the *median* and the *median absolute deviation (MAD)*. The median is a robust estimator of location, and the MAD is a robust estimator of scale
 
 ```math
-\mathrm{MAD}(X) = \median\left|X_i - \bar{X}\right|
+\\mathrm{MAD}(X) = \\mathrm{median}\\left|X_i - \\bar{X}\\right|
 ```
-where $\bar{X}$ is the median.
+where ``\\bar{X}`` is the median.
 
 The biweight transform improves upon these estimates by filtering out data beyond a critical cutoff. The analogy is doing a sigma-filter, but using these robust statistics instead of the standard deviation and mean.
 
 ```math
-u_i = \frac{X_i - \bar{X}}{c \cdot \mathrm{MAD}}
+u_i = \\frac{X_i - \\bar{X}}{c \\cdot \\mathrm{MAD}}
 ```
 
 ```math
-\forall i \in \left| u_i \right| < 1
+\\forall i \\quad\\mathrm{where}\\quad\\left| u_i \\right| < 1
 ```
 
-The cutoff factor, $c$, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of $c=6$ means outliers further than $\sim 9\sigma$ are clipped. In addition, in `Biweight`, we also skip `NaN`s.
+The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of ``c=6`` means outliers further than ``\\sim 9\\sigma`` are clipped. In addition, in `Biweight`, we also skip `NaN`s.
 
 # References
 
@@ -288,15 +288,15 @@ function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
     return out
 end
 
-raw"""
+"""
     midcor(X::AbstractVector, Y::AbstractVector; c=6)
 
 Compute the correlation between two variables using the midvariance and midcovariances.
 
 ```math
-\frac{\zeta_{xy}}{\zeta_{xx}\zeta_{yy}}
+\\frac{s_{xy}}{\\sqrt{s_{xx} \\cdot s_{yy}}}
 ```
-where $\zeta_{xx},\zeta_{yy}$ are the midvariances of each vector, and $\zeta_{xy}$ is the midcovariance of the two vectors.
+where ``s_{xx},s_{yy}`` are the midvariances of each vector, and ``s_{xy}`` is the midcovariance of the two vectors.
 
 # Examples
 
@@ -304,7 +304,7 @@ where $\zeta_{xx},\zeta_{yy}$ are the midvariances of each vector, and $\zeta_{x
 julia> X = 10 .* randn(rng, 10, 2) .+ 50;
 
 julia> midcor(X[:, 1], X[:, 2])
-1
+-0.22014156692229941
 ```
 
 # References

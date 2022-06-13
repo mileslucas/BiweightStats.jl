@@ -37,15 +37,12 @@ For more information, see the [Pkg documentation](https://docs.julialang.org/en/
 Biweight
 ```
 
-```@index
-```
-
 ```@docs
-Biweight.location
-Biweight.scale
-Biweight.midvar
-Biweight.midcov
-Biweight.midcor
+location
+scale
+midvar
+midcov
+midcor
 ```
 
 ## Related packages
@@ -56,7 +53,7 @@ Biweight.midcor
 
 2. [RobustStats.jl](https://github.com/mrxiaohe/RobustStats.jl)
 
-    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`Biweight.midvar`](@ref), although `bivar` does not have definitions for the statistics across axes of an array.
+    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`midvar`](@ref), although `bivar` does not have definitions for the statistics across axes of an array.
 
 ## Contributing and Support
 
