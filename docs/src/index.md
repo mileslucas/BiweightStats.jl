@@ -31,16 +31,6 @@ julia> using Biweight
 To exit Pkg mode, just backspace. Once the package is installed it can be imported with
 For more information, see the [Pkg documentation](https://docs.julialang.org/en/v1/stdlib/Pkg/).
 
-## Methods
-
-The following statistics are defined as methods-
-
-* [`Biweight.location`](@ref)
-* [`Biweight.scale`](@ref)
-* [`Biweight.midvar`](@ref)
-* [`Biweight.midcov`](@ref)
-* [`Biweight.midcor`](@ref)
-
 ## Related packages
 
 1. [StatsBase.jl](https://github.com/JuliaStats/StatsBase.jl)
@@ -49,15 +39,19 @@ The following statistics are defined as methods-
 
 2. [RobustStats.jl](https://github.com/mrxiaohe/RobustStats.jl)
 
-    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`Biweight.midvar`], although `bivar` does not have definitions for the statistics across axes of an array.
+    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`Biweight.midvar`](@ref), although `bivar` does not have definitions for the statistics across axes of an array.
 
 ## API/Reference
 
 ```@index
 ```
 
-```@autodocs
-Modules = [Biweight]
+```@docs
+Biweight.location
+Biweight.scale
+Biweight.midvar
+Biweight.midcov
+Biweight.midcor
 ```
 
 ## Contributing and Support
