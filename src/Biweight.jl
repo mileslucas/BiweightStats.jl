@@ -1,22 +1,49 @@
-"""
+raw"""
     Biweight
 
-A module for robust statistics. The following methods are implemented
+A module for robust statistics based on the biweight transform.[^1]
+
+# Biweight Statistics
+
+The basis of the biweight transform is robust analysis, that is, statistics which are resilient to outliers while still efficiently representing a variety of underlying distributions. The biweight transform is based off the *median* and the *median absolute deviation (MAD)*. The median is a robust estimator of location, and the MAD is a robust estimator of scale
+
+```math
+\mathrm{MAD}(X) = \median\left|X_i - \bar{X}\right|
+```
+where $\bar{X}$ is the median.
+
+The biweight transform improves upon these estimates by filtering out data beyond a critical cutoff. The analogy is doing a sigma-filter, but using these robust statistics instead of the standard deviation and mean.
+
+```math
+u_i = \frac{X_i - \bar{X}}{c \cdot \mathrm{MAD}}
+```
+
+```math
+\forall i \in \left| u_i \right| < 1
+```
+
+The cutoff factor, $c$, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of $c=6$ means outliers further than $\sim 9\sigma$ are clipped. In addition, in `Biweight`, we also skip `NaN`s.
+
+# References
+
+[^1]: [NIST: biweight](https://www.itl.nist.gov/div898/software/dataplot/refman2/ch2/biweight.pdf)
 
 # Methods
 
-- [`Biweight.location`](@ref)
-- [`Biweight.scale`](@ref)
-- [`Biweight.midvar`](@ref)
-- [`Biweight.midcov`](@ref)
-- [`Biweight.midcor`](@ref)
+- [`location`](@ref)
+- [`scale`](@ref)
+- [`midvar`](@ref)
+- [`midcov`](@ref)
+- [`midcor`](@ref)
 """
 module Biweight
 
 using Statistics
 
+export location, scale, midvar, midcov, midcor
+
 """
-    Biweight.location(X; c=6, maxiter=10, tol=1e-6)
+    location(X; c=6, maxiter=10, tol=1e-6)
 
 Iteratively calculate the biweight location, a robust measure of location.
 
@@ -24,6 +51,17 @@ Iteratively calculate the biweight location, a robust measure of location.
 
 The location will be refined until `maxiter` is reached or until the absolute change between estimates is below `tol`.
 
+# Examples
+
+```jldoctest
+julia> X = 10 .* randn(rng, 10) .+ 50;
+
+julia> location(X)
+```
+
+# References
+
+1. [NIST: biweight location](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwloc.htm)
 """
 function location(X; c=6, maxiter=10, tol=1e-6)
     T = eltype(X)
@@ -52,19 +90,27 @@ function location(X; c=6, maxiter=10, tol=1e-6)
 end
 
 """
-    Biweight.scale(X; c=9)
+    scale(X; c=6)
 
 Compute the biweight midvariance of the variable.
 
+# Examples
+
+```jldoctest
+julia> X = 10 .* randn(rng, 10) .+ 50;
+
+julia> scale(X)
+```
+
 # References
 
-1. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidv.htm
+1. [NIST: biweight scale](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwscale.htm)
 
 # See Also
 
-[`Biweight.midcor`](@ref), [`Biweight.midvar`](@ref), [`Biweight.midcov`](@ref)
+[`midcor`](@ref), [`midvar`](@ref), [`midcov`](@ref)
 """
-function scale(X; c=9)
+function scale(X; c=6)
     Δ = X .- median(X)
     mad = median(Iterators.map(abs, Δ))
     # init
@@ -85,19 +131,27 @@ function scale(X; c=9)
 end
 
 """
-    Biweight.midvar(X; c=9)
+    midvar(X; c=6)
 
 Compute the biweight midvariance of the variable.
 
+# Examples
+
+```jldoctest
+julia> X = 10 .* randn(rng, 10) .+ 50;
+
+julia> midvar(X)
+```
+
 # References
 
-1. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidv.htm
+1.  [NIST: biweight midvariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidv.htm)
 
 # See Also
 
-[`Biweight.scale`](@ref), [`Biweight.midcor`](@ref), [`Biweight.midcov`](@ref)
+[`scale`](@ref), [`midcor`](@ref), [`midcov`](@ref)
 """
-function midvar(X; c=9)
+function midvar(X; c=6)
     Δ = X .- median(X)
     mad = median(Iterators.map(abs, Δ))
     # init
@@ -117,38 +171,31 @@ function midvar(X; c=9)
     return n * num / den^2
 end
 
-function midcov(X::AbstractVector{T}; c=9) where T
-    Δ = X .- median(X)
-    mad = median(Iterators.map(abs, Δ))
-    # init
-    num = zero(T)
-    den = zero(T)
-    n = 0
-    for d in Δ
-        isnan(d) && continue
-        u2 = (d / (c * mad))^2
-        u2 > 1 && continue
-        num += d^2 * (1 - u2)^4
-        den += (1 - u2) * (1 - 5 * u2)
-        n += 1
-    end
-    return n * num / den^2
-end
-
 """
-    Biweight.midcov(X::AbstractVecotr, [Y::AbstractVector]; c=9)
+    midcov(X::AbstractVector, [Y::AbstractVector]; c=6)
 
 Computes biweight midcovariance between the two vectors. If only one vector is provided the biweight midvariance will be calculated.
 
+# Examples
+
+```jldoctest
+julia> X = 10 .* randn(rng, 10, 2) .+ 50;
+
+julia> midcov(X[:, 1], X[:, 2])
+
+julia> midcov(X[:, 1]) ≈ midvar(X[:, 1])
+true
+```
+
 # References
 
-1. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
+1. [NIST: biweight midcovariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm)
 
 # See Also
 
-[`Biweight.scale`](@ref), [`Biweight.midvar`](@ref), [`Biweight.midcor`](@ref)
+[`scale`](@ref), [`midvar`](@ref), [`midcor`](@ref)
 """
-function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; c=9) where {V,S}
+function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; c=6) where {V,S}
     length(X) == length(Y) || throw(DimensionMismatch("vectors must have same length"))
     Δx = X .- median(X)
     Δy = Y .- median(Y)
@@ -179,19 +226,30 @@ function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; c=9) where {V,S}
     return n * num / (den1 * den2)
 end
 
+midcov(X; kwargs...) = midvar(X; kwargs...)
 
 """
-    Biweight.midcov(X::AbstractMatrix; dims=1, c=9)
+    midcov(X::AbstractMatrix; dims=1, c=6)
 
 Computes the variance-covariance matrix using the biweight midcovariance. By default, each column is a separate variable, so an `(M, N)` matrix with `dims=1` will create an `(N, N)` covariance matrix. If `dims=2`, though, each row will become a variable, leading to an `(M, M)` covariance matrix.
 
+# Examples
+
+```jldoctest
+julia> X = 10 .* randn(rng, 5, 3) .+ 50;
+
+julia> C = midcov(X)
+
+julia> midcov(X; dims=2)
+```
+
 # References
 
-1. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm
+1. [NIST: biweight midcovariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm)
 
 # See Also
 
-[`Biweight.scale`](@ref), [`Biweight.midvar`](@ref), [`Biweight.midcor`](@ref)
+[`scale`](@ref), [`midvar`](@ref), [`midcor`](@ref)
 """
 function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
     vardim = dims == 1 ? 2 : 1
@@ -217,7 +275,7 @@ function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
 end
 
 raw"""
-    Biweight.midcor(X::AbstractVector, Y::AbstractVector; c=9)
+    midcor(X::AbstractVector, Y::AbstractVector; c=6)
 
 Compute the correlation between two variables using the midvariance and midcovariances.
 
@@ -226,14 +284,22 @@ Compute the correlation between two variables using the midvariance and midcovar
 ```
 where $\zeta_{xx},\zeta_{yy}$ are the midvariances of each vector, and $\zeta_{xy}$ is the midcovariance of the two vectors.
 
+# Examples
+
+```jldoctest
+julia> X = 10 .* randn(rng, 10, 2) .+ 50;
+
+julia> midcor(X[:, 1], X[:, 2])
+```
+
 # References
 
-1. https://en.wikipedia.org/wiki/Biweight_midcorrelation
-2. https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidcr.htm
+1. [Wikipedia](https://en.wikipedia.org/wiki/Biweight_midcorrelation)
+2. [NIST: Biweight midcorrelation](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidcr.htm)
 
 # See Also
 
-[`Biweight.midvar`](@ref), [`Biweight.midcov`](@ref), [`Biweight.scale`](@ref)
+[`midvar`](@ref), [`midcov`](@ref), [`scale`](@ref)
 """
 function midcor(X::AbstractVector, Y::AbstractVector; kwargs...)
     sxx = midcov(X; kwargs...)

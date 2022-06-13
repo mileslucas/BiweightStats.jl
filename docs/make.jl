@@ -1,7 +1,13 @@
 using Biweight
 using Documenter
 
-DocMeta.setdocmeta!(Biweight, :DocTestSetup, :(using Biweight); recursive=true)
+setup = quote
+    using Biweight
+    using StableRNGs
+    rng = StableRNG(1123)
+end
+
+DocMeta.setdocmeta!(Biweight, :DocTestSetup, setup; recursive=true)
 
 makedocs(;
     modules=[Biweight],
