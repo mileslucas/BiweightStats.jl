@@ -1,5 +1,5 @@
 """
-    Biweight
+    BiweightStats
 
 A module for robust statistics based on the biweight transform.[^1]
 
@@ -22,7 +22,7 @@ u_i = \\frac{X_i - \\bar{X}}{c \\cdot \\mathrm{MAD}}
 \\forall i \\quad\\mathrm{where}\\quad\\left| u_i \\right| < 1
 ```
 
-The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of ``c=6`` means outliers further than ``\\sim 9\\sigma`` are clipped. In addition, in `Biweight`, we also skip `NaN`s.
+The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of ``c=6`` means outliers further than ``\\sim 9\\sigma`` are clipped. In addition, in `BiweightStats`, we also skip `NaN`s.
 
 # References
 
@@ -36,7 +36,7 @@ The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviati
 - [`midcov`](@ref)
 - [`midcor`](@ref)
 """
-module Biweight
+module BiweightStats
 
 using Statistics
 

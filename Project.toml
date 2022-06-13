@@ -1,4 +1,4 @@
-name = "Biweight"
+name = "BiweightStats"
 uuid = "5bf8a1e9-d5f8-4697-9608-80edd97af0ad"
 authors = ["Miles Lucas <mdlucas@hawaii.edu> and contributors"]
 version = "0.1.0"

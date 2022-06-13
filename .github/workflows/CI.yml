@@ -49,7 +49,7 @@ jobs:
           version: '1'
       - uses: julia-actions/julia-buildpkg@v1
       - run: julia -e 'using Pkg; Pkg.add("Aqua")'
-      - run: julia --project=@. -e 'using Aqua, Biweight; Aqua.test_all(Biweight)'
+      - run: julia --project=@. -e 'using Aqua, BiweightStats; Aqua.test_all(BiweightStats)'
   docs:
     name: Documentation
     runs-on: ubuntu-latest
@@ -66,6 +66,6 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
-            using Biweight
-            DocMeta.setdocmeta!(Biweight, :DocTestSetup, :(using Biweight); recursive=true)
-            doctest(Biweight)'
+            using BiweightStats
+            DocMeta.setdocmeta!(BiweightStats, :DocTestSetup, :(using BiweightStats); recursive=true)
+            doctest(BiweightStats)'
