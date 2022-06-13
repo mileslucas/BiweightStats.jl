@@ -57,6 +57,7 @@ The location will be refined until `maxiter` is reached or until the absolute ch
 julia> X = 10 .* randn(rng, 10) .+ 50;
 
 julia> location(X)
+49.483640367304304
 ```
 
 # References
@@ -100,6 +101,7 @@ Compute the biweight midvariance of the variable.
 julia> X = 10 .* randn(rng, 10) .+ 50;
 
 julia> scale(X)
+9.269099543377779
 ```
 
 # References
@@ -141,6 +143,7 @@ Compute the biweight midvariance of the variable.
 julia> X = 10 .* randn(rng, 10) .+ 50;
 
 julia> midvar(X)
+70.53324162560791
 ```
 
 # References
@@ -182,6 +185,7 @@ Computes biweight midcovariance between the two vectors. If only one vector is p
 julia> X = 10 .* randn(rng, 10, 2) .+ 50;
 
 julia> midcov(X[:, 1], X[:, 2])
+-25.644749715907157
 
 julia> midcov(X[:, 1]) ≈ midvar(X[:, 1])
 true
@@ -239,8 +243,18 @@ Computes the variance-covariance matrix using the biweight midcovariance. By def
 julia> X = 10 .* randn(rng, 5, 3) .+ 50;
 
 julia> C = midcov(X)
+3×3 Matrix{Float64}:
+ 214.707   -38.4913   38.2848
+ -38.4913   35.6904  -18.5234
+  38.2848  -18.5234   77.4838
 
 julia> midcov(X; dims=2)
+5×5 Matrix{Float64}:
+  7.10619   13.7261     26.8059    2.28917   -0.640045
+ 13.7261    26.6125     52.0541    1.31522   -0.367732
+ 26.8059    52.0541    327.443   -83.8513    70.6212
+  2.28917    1.31522   -83.8513  128.887    -53.5744
+ -0.640045  -0.367732   70.6212  -53.5744    29.7501
 ```
 
 # References
@@ -290,6 +304,7 @@ where $\zeta_{xx},\zeta_{yy}$ are the midvariances of each vector, and $\zeta_{x
 julia> X = 10 .* randn(rng, 10, 2) .+ 50;
 
 julia> midcor(X[:, 1], X[:, 2])
+1
 ```
 
 # References
@@ -303,7 +318,7 @@ julia> midcor(X[:, 1], X[:, 2])
 """
 function midcor(X::AbstractVector, Y::AbstractVector; kwargs...)
     sxx = midcov(X; kwargs...)
-    syy = midcov(X; kwargs...)
+    syy = midcov(Y; kwargs...)
     sxy = midcov(X, Y; kwargs...)
     return sxy / sqrt(sxx * syy)
 end
