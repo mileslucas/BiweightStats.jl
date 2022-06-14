@@ -43,6 +43,7 @@ scale
 midvar
 midcov
 midcor
+BiweightTransform
 ```
 
 ## Related packages

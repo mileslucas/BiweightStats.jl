@@ -19,14 +19,15 @@ u_i = \\frac{X_i - \\bar{X}}{c \\cdot \\mathrm{MAD}}
 ```
 
 ```math
-\\forall i \\quad\\mathrm{where}\\quad u_i^2 < 1
+\\forall i \\quad\\mathrm{where}\\quad u_i^2 \\le 1
 ```
 
-The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of ``c=9`` means outliers further than ``\\sim 9\\sigma`` are clipped. In addition, in `BiweightStats`, we also skip `NaN`s.
+The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.4826[^2]. So a typical value of ``c=9`` means outliers further than ``13.3\\sigma`` are clipped (for residuals which are truly Gaussian distributed). In addition, in `BiweightStats`, we also skip `NaN`s and `Inf`s (but not `missing` or `nothing`).
 
 # References
 
 [^1]: [NIST: biweight](https://www.itl.nist.gov/div898/software/dataplot/refman2/ch2/biweight.pdf)
+[^2]: [Median absolute deviation](https://en.wikipedia.org/wiki/Median_absolute_deviation#Relation_to_standard_deviation)
 
 # Methods
 
@@ -40,7 +41,7 @@ module BiweightStats
 
 using Statistics
 
-export location, scale, midvar, midcov, midcor
+export BiweightTransform, location, scale, midvar, midcov, midcor
 
 struct BiweightTransform{D,M,C}
     data::D # data filtered to remove NaN
@@ -48,17 +49,69 @@ struct BiweightTransform{D,M,C}
     cutoff::C # c * MAD
 end
 
-function BiweightTransform(X; c=9, median=nothing)
-    data = filter(!isnan, X)
-    if isnothing(median)
-        med = Statistics.median(data)
+"""
+    BiweightTransform(X; c=9, M=nothing)
+
+Creates an iterator based on the biweight transform.[^1] This iterator will first filter all input data so that only finite values remain. Then, the iteration will progress using a custom state, which includes a flag to indicate whether the value is within the cutoff, which is `c` times the median-absolute-deviation (MAD). The MAD is based on the deviation from `M`, which will default to the median of `X` if `M` is `nothing`.
+
+# Examples
+
+```jldoctest transform
+julia> X = randn(rng, 100);
+
+julia> X[10] = 1e4 # add clear outlier
+10000.0
+
+julia> X[13] = NaN # add NaN
+NaN
+
+julia> X[25] = Inf # add Inf
+Inf
+
+julia> bt = BiweightTransform(X);
+```
+
+!!! warning "Advanced usage"
+    This transform iterator is used for the internal calculations in `BiweightStats.jl`, which is why it has a somewhat complicated iterator implementation.
+
+Lets confirm all the entries are finite. The iteration interface is divided into
+```julia
+(d, u2, flag), state = iterate(bt, [state])
+```
+where `d` is the data value minus `M`, `u2` is `(d / (c * MAD))^2`, and `flag` is whether the value is within the transformed dataset.
+
+```jldoctest transform
+julia> all(d -> isfinite(d[1]), bt)
+true
+```
+
+and let's see how iteration differs between a normal sample and an outlier sample, which we manually inserted at index `10`-
+
+```jldoctest transform
+julia> (d, u2, flag), _ = iterate(bt, 9)
+((-0.19394606869620928, 0.0010611773754948513, true), 10)
+
+julia> (d, u2, flag), _ = iterate(bt, 10)
+((0.0, 0.0, false), 11)
+```
+
+# References
+
+[^1]: [NIST: biweight](https://www.itl.nist.gov/div898/software/dataplot/refman2/ch2/biweight.pdf)
+"""
+function BiweightTransform(X; c=9, M=nothing)
+    data = filter(isfinite, X)
+    if isnothing(M)
+        med = median(data)
     else
-        med = median
+        med = M
     end
     mad = median!(abs.(data .- med))
     return BiweightTransform(data, med, c * mad)
 end
 
+Base.size(bt::BiweightTransform) = size(bt.data)
+Base.size(bt::BiweightTransform, d) = size(bt.data, d)
 Base.IteratorSize(bt::BiweightTransform) = Base.IteratorSize(bt.data)
 Base.IteratorEltype(bt::BiweightTransform) = Base.IteratorEltype(bt.data)
 
@@ -104,7 +157,7 @@ The location will be refined until `maxiter` is reached or until the absolute ch
 julia> X = 10 .* randn(rng, 10) .+ 50;
 
 julia> location(X)
-49.483640367304304
+52.96167194509623
 ```
 
 # References
@@ -112,12 +165,12 @@ julia> location(X)
 1. [NIST: biweight location](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwloc.htm)
 """
 function location(X; maxiter=10, tol=1e-6, kwargs...)
-    T = eltype(X)
+    T = float(eltype(X))
     ystar = ystar_old = zero(T)
     num = zero(T)
     den = zero(T)
     for _ in 1:maxiter
-        itr = BiweightTransform(X; kwargs..., median=ystar)
+        itr = BiweightTransform(X; kwargs..., M=ystar)
         num = zero(T)
         den = zero(T)
         for (d, u2, flag) in itr
@@ -144,7 +197,7 @@ Compute the biweight scale of the variable. This is different than the square-ro
 julia> X = 10 .* randn(rng, 10) .+ 50;
 
 julia> scale(X)
-8.398407088585783
+10.735741197627927
 ```
 
 # References
@@ -168,7 +221,7 @@ Compute the biweight midvariance of the variable.
 julia> X = 10 .* randn(rng, 10) .+ 50;
 
 julia> midvar(X)
-70.53324162560791
+115.25613906244553
 ```
 
 # References
@@ -207,7 +260,7 @@ Computes biweight midcovariance between the two vectors. If only one vector is p
 julia> X = 10 .* randn(rng, 10, 2) .+ 50;
 
 julia> midcov(X[:, 1], X[:, 2])
--27.95570929732296
+-17.88519840507064
 
 julia> midcov(X[:, 1]) ≈ midvar(X[:, 1])
 true
@@ -222,10 +275,11 @@ true
 [`scale`](@ref), [`midvar`](@ref), [`midcor`](@ref)
 """
 function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; kwargs...) where {V,S}
+    T = float(promote_type(V, S))
+    (all(isfinite, X) && all(isfinite, Y)) || return T(NaN)
     itrx = BiweightTransform(X; kwargs...)
     itry = BiweightTransform(Y; kwargs...)
     # init
-    T = promote_type(V, S)
     num = zero(T)
     den1 = zero(T)
     den2 = zero(T)
@@ -255,17 +309,17 @@ julia> X = 10 .* randn(rng, 5, 3) .+ 50;
 
 julia> C = midcov(X)
 3×3 Matrix{Float64}:
- 214.707   -38.4913   38.2848
- -38.4913   35.6904  -18.5234
-  38.2848  -18.5234   77.4838
+ 198.722  -10.721   151.942
+ -10.721   50.4328  -49.7557
+ 151.942  -49.7557  365.47
 
 julia> midcov(X; dims=2)
 5×5 Matrix{Float64}:
-  7.10619   13.7261     26.8059    2.28917   -0.640045
- 13.7261    26.6125     52.0541    1.31522   -0.367732
- 26.8059    52.0541    327.443   -83.8513    70.6212
-  2.28917    1.31522   -83.8513  128.887    -53.5744
- -0.640045  -0.367732   70.6212  -53.5744    29.7501
+  47.1121  101.961    26.743    61.7125  -11.8924
+ 101.961   220.758    60.4261  132.277   -25.4905
+  26.743    60.4261  295.018   -58.5718   70.2128
+  61.7125  132.277   -58.5718  114.787   -38.5369
+ -11.8924  -25.4905   70.2128  -38.5369   27.1058
 ```
 
 # References
@@ -278,7 +332,7 @@ julia> midcov(X; dims=2)
 """
 function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
     vardim = dims == 1 ? 2 : 1
-    out = zeros(T, size(X, vardim), size(X, vardim))
+    out = zeros(float(T), size(X, vardim), size(X, vardim))
 
     for i in axes(out, 1), j in axes(out, 2)
         if i > j
@@ -315,7 +369,7 @@ where ``s_{xx},s_{yy}`` are the midvariances of each vector, and ``s_{xy}`` is t
 julia> X = 10 .* randn(rng, 10, 2) .+ 50;
 
 julia> midcor(X[:, 1], X[:, 2])
--0.23997947795605037
+-0.12656911189766995
 ```
 
 # References
