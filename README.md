@@ -12,12 +12,12 @@ Robust statistics based on the biweight transform.
 
 ## Installation
 
-BiweightStats.jl can be installed using the Julia package manager. From the Julia REPL, enter Pkg mode (by pressing `]`)
+BiweightStats.jl is a registered package and can be installed using the Julia package manager. From the Julia REPL, enter Pkg mode (by pressing `]`)
 
 ```julia
 julia>]
 
-pkg> add https://github.com/mileslucas/BiweightStats.jl
+pkg> add BiweightStats
 ```
 
 To exit Pkg mode, just backspace. Once the package is installed it can be imported with
