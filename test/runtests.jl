@@ -112,6 +112,9 @@ rng = StableRNG(1123)
         for v in (NaN, Inf)
             @test isnan(midcov([1, 2, 3, v, 2], [2, v, 3, 2, 1]))
         end
+
+        # incorrect lengths
+        @test_throws DimensionMismatch midcov(X, Y[begin+1:end])
     end
 
     @testset "midcor" begin
@@ -141,5 +144,7 @@ rng = StableRNG(1123)
         for v in (NaN, Inf)
             @test isnan(midcor([1, 2, 3, v, 2], [2, v, 3, 2, 1]))
         end
+        # incorrect lengths
+        @test_throws DimensionMismatch midcor(X, Y[begin+1:end])
     end
 end
