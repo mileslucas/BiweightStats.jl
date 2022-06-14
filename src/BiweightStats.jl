@@ -22,7 +22,7 @@ u_i = \\frac{X_i - \\bar{X}}{c \\cdot \\mathrm{MAD}}
 \\forall i \\quad\\mathrm{where}\\quad u_i^2 < 1
 ```
 
-The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of ``c=6`` means outliers further than ``\\sim 9\\sigma`` are clipped. In addition, in `BiweightStats`, we also skip `NaN`s.
+The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.48. So a typical value of ``c=9`` means outliers further than ``\\sim 9\\sigma`` are clipped. In addition, in `BiweightStats`, we also skip `NaN`s.
 
 # References
 
@@ -42,13 +42,13 @@ using Statistics
 
 export location, scale, midvar, midcov, midcor
 
-struct BiweightTransform{D,M}
-    data::D
-    med::M
-    cutoff::M
+struct BiweightTransform{D,M,C}
+    data::D # data filtered to remove NaN
+    med::M # median
+    cutoff::C # c * MAD
 end
 
-function BiweightTransform(X; c=6, median=nothing)
+function BiweightTransform(X; c=9, median=nothing)
     data = filter(!isnan, X)
     if isnothing(median)
         med = Statistics.median(data)
@@ -79,15 +79,18 @@ end
 function _biweight_iterate(bt, data)
     d = data - bt.med
     u2 = (d / bt.cutoff)^2 # ((x - Mx) / (c * MAD))^2
+    # if MAD is zero, u2 will become 0
+    iszero(bt.cutoff) && return zero(d), zero(u2), true
+    # filter values beyond cutoff
     if u2 > 1
         return zero(d), zero(u2), false
     end
-
+    # normal return
     return d, u2, true
 end
 
 """
-    location(X; c=6, maxiter=10, tol=1e-6)
+    location(X; c=9, maxiter=10, tol=1e-6)
 
 Iteratively calculate the biweight location, a robust measure of location.
 
@@ -110,8 +113,7 @@ julia> location(X)
 """
 function location(X; maxiter=10, tol=1e-6, kwargs...)
     T = eltype(X)
-    ystar = zero(T)
-    ystar_old = ystar
+    ystar = ystar_old = zero(T)
     num = zero(T)
     den = zero(T)
     for _ in 1:maxiter
@@ -132,7 +134,7 @@ function location(X; maxiter=10, tol=1e-6, kwargs...)
 end
 
 """
-    scale(X; c=6)
+    scale(X; c=9)
 
 Compute the biweight scale of the variable. This is different than the square-root of the midvariance.
 
@@ -156,7 +158,7 @@ julia> scale(X)
 scale(X; kwargs...) = sqrt(midvar(X; kwargs...))
 
 """
-    midvar(X; c=6)
+    midvar(X; c=9)
 
 Compute the biweight midvariance of the variable.
 
@@ -195,7 +197,7 @@ function midvar(X; kwargs...)
 end
 
 """
-    midcov(X::AbstractVector, [Y::AbstractVector]; c=6)
+    midcov(X::AbstractVector, [Y::AbstractVector]; c=9)
 
 Computes biweight midcovariance between the two vectors. If only one vector is provided the biweight midvariance will be calculated.
 
@@ -242,7 +244,7 @@ end
 midcov(X; kwargs...) = midvar(X; kwargs...)
 
 """
-    midcov(X::AbstractMatrix; dims=1, c=6)
+    midcov(X::AbstractMatrix; dims=1, c=9)
 
 Computes the variance-covariance matrix using the biweight midcovariance. By default, each column is a separate variable, so an `(M, N)` matrix with `dims=1` will create an `(N, N)` covariance matrix. If `dims=2`, though, each row will become a variable, leading to an `(M, M)` covariance matrix.
 
@@ -298,7 +300,7 @@ function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
 end
 
 """
-    midcor(X::AbstractVector, Y::AbstractVector; c=6)
+    midcor(X::AbstractVector, Y::AbstractVector; c=9)
 
 Compute the correlation between two variables using the midvariance and midcovariances.
 
