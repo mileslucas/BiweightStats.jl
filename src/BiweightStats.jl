@@ -89,7 +89,7 @@ and let's see how iteration differs between a normal sample and an outlier sampl
 
 ```jldoctest transform
 julia> (d, u2, flag), _ = iterate(bt, 9)
-((-0.19394606869620928, 0.0010611773754948513, true), 10)
+((-0.17093842061187192, 0.0009098761083851183, true), 10)
 
 julia> (d, u2, flag), _ = iterate(bt, 10)
 ((0.0, 0.0, false), 11)
@@ -386,6 +386,63 @@ function midcor(X::AbstractVector, Y::AbstractVector; kwargs...)
     syy = midcov(Y; kwargs...)
     sxy = midcov(X, Y; kwargs...)
     return sxy / sqrt(sxx * syy)
+end
+
+"""
+    midcor(X::AbstractMatrix; dims=1, c=9)
+
+Computes the correlation matrix using the biweight midcorrealtion. By default, each column of the matrix is a separate variable, so an `(M, N)` matrix with `dims=1` will create an `(N, N)` correlation matrix. If `dims=2`, though, each row will become a variable, leading to an `(M, M)` correlation matrix. The diagonal will always be one.
+
+# Examples
+
+```jldoctest
+julia> X = 10 .* randn(rng, 5, 3) .+ 50;
+
+julia> C = midcor(X)
+3×3 Matrix{Float64}:
+  1.0       -0.107092   0.563805
+ -0.107092   1.0       -0.366489
+  0.563805  -0.366489   1.0
+
+julia> midcor(X; dims=2)
+5×5 Matrix{Float64}:
+  1.0        0.999789   0.22684    0.83919   -0.332791
+  0.999789   1.0        0.236778   0.830955  -0.329525
+  0.22684    0.236778   1.0       -0.318286   0.785165
+  0.83919    0.830955  -0.318286   1.0       -0.690874
+ -0.332791  -0.329525   0.785165  -0.690874   1.0
+```
+
+# References
+
+1. [Wikipedia](https://en.wikipedia.org/wiki/Biweight_midcorrelation)
+2. [NIST: Biweight midcorrelation](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidcr.htm)
+
+# See Also
+
+[`midvar`](@ref), [`midcov`](@ref), [`scale`](@ref)
+"""
+function midcor(X::AbstractMatrix{V}; dims=1, kwargs...) where V
+    vardim = dims == 1 ? 2 : 1
+    T = float(V)
+    out = zeros(T, size(X, vardim), size(X, vardim))
+
+    for i in axes(out, 1), j in axes(out, 2)
+        if i > j
+            out[i, j] = out[j, i]
+            continue
+        end
+        if i == j
+            cor = one(T)
+        else
+            x = selectdim(X, vardim, i)
+            y = selectdim(X, vardim, j)
+            cor = midcor(x, y; kwargs...)
+        end
+        out[i, j] = cor
+    end
+
+    return out
 end
 
 end

@@ -113,4 +113,33 @@ rng = StableRNG(1123)
             @test isnan(midcov([1, 2, 3, v, 2], [2, v, 3, 2, 1]))
         end
     end
+
+    @testset "midcor" begin
+        X = randn(rng, 10000)
+        Y = randn(rng, 10000)
+        val = midcor(X, Y)
+        @test val ≈ 0 atol=2e-2
+        # trivial correlation
+        @test midcor(X, X) ≈ 1
+        @test isnan(midcor(ones(100), ones(100)))
+        
+
+        # outlier
+        X = [1, 2, 3, 500, 2]
+        Y = [2, 500, 3, 2, 1]
+        val = midcor(X, Y)
+        @test val ≈ 0.68391 atol=1e-5
+
+        
+        mat = midcor([X Y])
+        @test mat[1, 1] == mat[2, 2] == 1
+        @test mat[1, 2] == mat[2, 1] == midcor(X, Y)
+
+        @test size(midcor([X Y], dims=2)) == (5, 5)
+
+        # NaN/Inf
+        for v in (NaN, Inf)
+            @test isnan(midcor([1, 2, 3, v, 2], [2, v, 3, 2, 1]))
+        end
+    end
 end
