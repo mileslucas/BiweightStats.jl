@@ -26,11 +26,11 @@ rng = StableRNG(1123)
         val = location(X)
         @test val ≈ 1
 
-        # X = repeat([1 2 3], outer=5)
-        # vals = location(X; dims=1)
-        # @test vals ≈ [1 2 3]
-        # vals = location(X; dims=2)
-        # @test vals ≈ fill(2.0, 5)
+        X = repeat([1 2 3], outer=5)
+        vals = location(X; dims=1)
+        @test vals ≈ [1 2 3]
+        vals = location(X; dims=2)
+        @test vals ≈ fill(2.0, 5)
 
         # outlier
         val = location([1, 2, 3, 500, 2])
@@ -49,28 +49,28 @@ rng = StableRNG(1123)
         # depend on midvar tests
         @test val == sqrt(midvar(X))
         # axes
-        # X = randn(rng, 10000, 5)
-        # for dims in (1, 2)
-        #     vals = scale(X; dims=dims)
-        #     @test vals ≈ sqrt.(midvar(X, dims=dims))
-        # en
+        X = randn(rng, 10000, 5)
+        for dims in (1, 2)
+            vals = scale(X; dims=dims)
+            @test vals ≈ sqrt.(midvar(X, dims=dims))
+        end
     end
 
     @testset "midvar" begin
         X = randn(rng, 10000)
         val = midvar(X)
-        @test val ≈ 1 atol=0.03
+        @test val ≈ 1 atol=3e-2
 
         # trivial variance
         @test midvar(zeros(100)) ≈ 0
         @test midvar(ones(100)) ≈ 0
 
         # axes
-        # X = randn(rng, 10000, 5)
-        # vals = midvar(X; dims=1)
-        # @test vals ≈ [1 1 1 1] rtol=1e-2
-        # vals = midvar(X; dims=2)
-        # @test size(vals) == (10000, 1)
+        X = randn(rng, 10000, 5)
+        vals = midvar(X; dims=1)
+        @test all(v -> isapprox(v, 1, atol=3e-2), vals)
+        vals = midvar(X; dims=2)
+        @test size(vals) == (10000, 1)
 
         # outlier
         val = midvar([1, 2, 3, 500, 2])

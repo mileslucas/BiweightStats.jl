@@ -144,6 +144,7 @@ end
 
 """
     location(X; c=9, maxiter=10, tol=1e-6)
+    location(X::AbstractArray; dims=:, kwargs...)
 
 Iteratively calculate the biweight location, a robust measure of location.
 
@@ -164,7 +165,12 @@ julia> location(X)
 
 1. [NIST: biweight location](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwloc.htm)
 """
-function location(X; maxiter=10, tol=1e-6, kwargs...)
+location(X; maxiter=10, tol=1e-6, kwargs...) = biweight_location(X; maxiter, tol, kwargs...)
+location(X::AbstractArray; dims=:, kwargs...) = location(X, dims; kwargs...)
+location(X::AbstractArray, ::Colon; kwargs...) = biweight_location(X; kwargs...)
+location(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> biweight_location(sl; kwargs...), X; dims)
+
+function biweight_location(X; maxiter=10, tol=1e-6, kwargs...)
     T = float(eltype(X))
     ystar = ystar_old = zero(T)
     num = zero(T)
@@ -186,8 +192,10 @@ function location(X; maxiter=10, tol=1e-6, kwargs...)
     return ystar
 end
 
+
 """
-    scale(X; c=9)
+    scale(X; c=9, M=nothing)
+    scale(X::AbstractArray; dims=:, kwargs...)
 
 Compute the biweight scale of the variable. This is different than the square-root of the midvariance.
 
@@ -208,10 +216,14 @@ julia> scale(X)
 
 [`midcor`](@ref), [`midvar`](@ref), [`midcov`](@ref)
 """
-scale(X; kwargs...) = sqrt(midvar(X; kwargs...))
+scale(X; kwargs...) = sqrt(biweight_midvar(X; kwargs...))
+scale(X::AbstractArray; dims=:, kwargs...) = scale(X, dims; kwargs...)
+scale(X::AbstractArray, ::Colon; kwargs...) = sqrt(biweight_midvar(X; kwargs...))
+scale(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> sqrt(biweight_midvar(sl; kwargs...)), X; dims)
 
 """
-    midvar(X; c=9)
+    midvar(X; c=9, M=nothing)
+    midvar(X::AbstractArray; dims=:, kwargs...)
 
 Compute the biweight midvariance of the variable.
 
@@ -232,7 +244,12 @@ julia> midvar(X)
 
 [`scale`](@ref), [`midcor`](@ref), [`midcov`](@ref)
 """
-function midvar(X; kwargs...)
+midvar(X; kwargs...) = biweight_midvar(X; kwargs...)
+midvar(X::AbstractArray; dims=:, kwargs...) = midvar(X, dims; kwargs...)
+midvar(X::AbstractArray, ::Colon; kwargs...) = biweight_midvar(X; kwargs...)
+midvar(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> biweight_midvar(sl; kwargs...), X; dims)
+
+function biweight_midvar(X; kwargs...)
     itr = BiweightTransform(X; kwargs...)
     # init
     T = eltype(X)
@@ -250,7 +267,7 @@ function midvar(X; kwargs...)
 end
 
 """
-    midcov(X::AbstractVector, [Y::AbstractVector]; c=9)
+    midcov(X, [Y]; c=9)
 
 Computes biweight midcovariance between the two vectors. If only one vector is provided the biweight midvariance will be calculated.
 
@@ -274,8 +291,9 @@ true
 
 [`scale`](@ref), [`midvar`](@ref), [`midcor`](@ref)
 """
-function midcov(X::AbstractVector{V}, Y::AbstractVector{S}; kwargs...) where {V,S}
-    T = float(promote_type(V, S))
+function midcov(X, Y; kwargs...)
+    length(X) == length(Y) || throw(DimensionMismatch("collections must have equal length"))
+    T = float(promote_type(eltype(X), eltype(Y)))
     (all(isfinite, X) && all(isfinite, Y)) || return T(NaN)
     itrx = BiweightTransform(X; kwargs...)
     itry = BiweightTransform(Y; kwargs...)
@@ -354,7 +372,7 @@ function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
 end
 
 """
-    midcor(X::AbstractVector, Y::AbstractVector; c=9)
+    midcor(X, Y; c=9)
 
 Compute the correlation between two variables using the midvariance and midcovariances.
 
@@ -381,10 +399,10 @@ julia> midcor(X[:, 1], X[:, 2])
 
 [`midvar`](@ref), [`midcov`](@ref), [`scale`](@ref)
 """
-function midcor(X::AbstractVector, Y::AbstractVector; kwargs...)
+function midcor(X, Y; kwargs...)
+    sxy = midcov(X, Y; kwargs...)
     sxx = midcov(X; kwargs...)
     syy = midcov(Y; kwargs...)
-    sxy = midcov(X, Y; kwargs...)
     return sxy / sqrt(sxx * syy)
 end
 
