@@ -22,7 +22,7 @@ u_i = \\frac{X_i - \\bar{X}}{c \\cdot \\mathrm{MAD}}
 \\forall i \\quad\\mathrm{where}\\quad u_i^2 \\le 1
 ```
 
-The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.4826[^2]. So a typical value of ``c=9`` means outliers further than ``13.3\\sigma`` are clipped (for residuals which are truly Gaussian distributed). In addition, in `BiweightStats`, we also skip `NaN`s and `Inf`s (but not `missing` or `nothing`).
+The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviation by multiplying by 1.4826[^2]. So a typical value of ``c=9`` means outliers further than ``13.3\\sigma`` are clipped (for residuals which are truly Gaussian-distributed). In addition, in `BiweightStats`, we also skip `NaN`s and `Inf`s (but not `missing` or `nothing`).
 
 # References
 
@@ -271,6 +271,9 @@ end
 
 Computes biweight midcovariance between the two vectors. If only one vector is provided the biweight midvariance will be calculated.
 
+!!! warning
+    `NaN` and `Inf` cannot be removed in the covariance calculation, so the returned value will be `NaN`
+
 # Examples
 
 ```jldoctest
@@ -281,6 +284,11 @@ julia> midcov(X[:, 1], X[:, 2])
 
 julia> midcov(X[:, 1]) ≈ midvar(X[:, 1])
 true
+
+julia> X[3, 2] = NaN;
+
+julia> midcov(X[:, 1], X[:, 2])
+NaN
 ```
 
 # References
@@ -319,6 +327,9 @@ midcov(X; kwargs...) = midvar(X; kwargs...)
     midcov(X::AbstractMatrix; dims=1, c=9)
 
 Computes the variance-covariance matrix using the biweight midcovariance. By default, each column is a separate variable, so an `(M, N)` matrix with `dims=1` will create an `(N, N)` covariance matrix. If `dims=2`, though, each row will become a variable, leading to an `(M, M)` covariance matrix.
+
+!!! warning
+    `NaN` and `Inf` cannot be removed in the covariance calculation, so the returned value will be `NaN`
 
 # Examples
 
