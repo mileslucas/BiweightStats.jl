@@ -67,5 +67,10 @@ jobs:
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
             using BiweightStats
-            DocMeta.setdocmeta!(BiweightStats, :DocTestSetup, :(using BiweightStats); recursive=true)
+            setup = quote
+                using BiweightStats
+                using StableRNGs
+                rng = StableRNG(1123)
+            end
+            DocMeta.setdocmeta!(BiweightStats, :DocTestSetup, setup; recursive=true)
             doctest(BiweightStats)'
