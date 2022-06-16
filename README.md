@@ -49,6 +49,10 @@ The following statistics are defined as methods-
 
     Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's `midvar`, although `bivar` does not have definitions for the statistics across axes of an array.
 
+3. [astropy.stats](https://github.com/astropy/astropy)
+
+    Python implementations of all the statistics presented here. Some slight differences in the function signatures and the implementations are independent.
+
 ## Contributing and Support
 
 If you would like to contribute, feel free to open a [pull request](https://github.com/mileslucas/BiweightStats.jl/pulls). If you want to discuss something before contributing, head over to [discussions](https://github.com/mileslucas/BiweightStats.jl/discussions) and join or open a new topic. If you're having problems with something, please open an [issue](https://github.com/mileslucas/BiweightStats.jl/issues).

@@ -57,6 +57,48 @@ BiweightTransform
 
     Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`midvar`](@ref), although `bivar` does not have definitions for the statistics across axes of an array.
 
+3. [astropy.stats](https://github.com/astropy/astropy)
+
+    Python implementations of all the statistics presented here. Some slight differences in the function signatures and the implementations are independent.
+
+## Benchmarks
+
+This package has been benchmarked against [astropy.stats](https://github.com/astropy/astropy). The benchmarking code can be found in [`bench/`](https://github.com/mileslucas/BiweightStats.jl/tree/main/bench).
+
+**System Information**
+
+Benchmarks were ran on a 2021 M1 Macbook Pro
+
+```
+Julia Version 1.8.0-beta2
+Commit b655b2c008 (2022-03-21 12:50 UTC)
+Platform Info:
+  OS: macOS (arm64-apple-darwin21.3.0)
+  CPU: 10 × Apple M1 Max
+  WORD_SIZE: 64
+  LIBM: libopenlibm
+  LLVM: libLLVM-13.0.1 (ORCJIT, apple-m1)
+  Threads: 8 on 8 virtual cores
+```
+
+The benchmarks that were ran generated 2 sets of ``n`` normally-distributed samples without any outliers or non-finite numbers added. One of these sets was used for testing both this package's and astropy's implementations of the univariate statistics. For the midcovariance statistic, the data was combined into an ``(N, 2)`` matrix to match the astropy function signature.
+
+```@example bench
+using BiweightStats, CSV, DataFrames, StatsPlots # hide
+benchdir = joinpath(dirname(pathof(BiweightStats)), "..", "bench") # hide
+results = CSV.read(joinpath(benchdir, "benchmark_results.csv"), DataFrame) # hide
+shapes = [:o, :square, :diamond, :utriangle, :dtriangle] # hide
+groups = groupby(results, :name) # hide
+p = plot(xscale=:log10, yscale=:log10, xlabel="n", ylabel="t [s]", # hide
+    leg=:topleft, legendfontsize=7) # hide
+for (s, (k, g)) in zip(shapes, pairs(groups)) # hide
+    @df g scatter!(:n, :t_jl, lab=k.name * " (BiweightStats.jl)", marker=s, c=1) # hide
+    @df g scatter!(:n, :t_py, lab=k.name * " (astropy)", marker=s, c=2) # hide
+end # hide
+p # hide
+```
+
+
 ## Contributing and Support
 
 If you would like to contribute, feel free to open a [pull request](https://github.com/mileslucas/BiweightStats.jl/pulls). If you want to discuss something before contributing, head over to [discussions](https://github.com/mileslucas/BiweightStats.jl/discussions) and join or open a new topic. If you're having problems with something, please open an [issue](https://github.com/mileslucas/BiweightStats.jl/issues).

@@ -158,7 +158,7 @@ The location will be refined until `maxiter` is reached or until the absolute ch
 julia> X = 10 .* randn(rng, 10) .+ 50;
 
 julia> location(X)
-52.96167194509623
+52.961650942043484
 ```
 
 # References
@@ -172,7 +172,8 @@ location(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> biweight_loca
 
 function biweight_location(X; maxiter=10, tol=1e-6, kwargs...)
     T = float(eltype(X))
-    ystar = ystar_old = zero(T)
+    ystar = median(Iterators.filter(isfinite, X))
+    ystar_old = ystar
     num = zero(T)
     den = zero(T)
     for _ in 1:maxiter
