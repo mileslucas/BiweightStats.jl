@@ -29,9 +29,9 @@ julia> using BiweightStats
 To exit Pkg mode, just backspace. Once the package is installed it can be imported with
 For more information, see the [Pkg documentation](https://docs.julialang.org/en/v1/stdlib/Pkg/).
 
-## Methods
+## Statistics
 
-The following statistics are defined as methods. For more information, see the [online documentation](https://mileslucas.github.io/BiweightStats.jl/dev)
+The following statistics are defined as methods. For more information, see the [online documentation](https://mileslucas.github.io/BiweightStats.jl/dev).
 
 * `location`
 * `scale`
