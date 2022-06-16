@@ -149,7 +149,7 @@ end
 Calculate the biweight location, a robust measure of location.
 
 ```math
-\\hat{y} = \\frac{\\sum_{u_i^2 \\le 1}{y_i(1 - u_i^2)^2}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)^2}}
+\\hat{y} = \\frac{\\sum_{u_i^2 \\le 1}{y_i(1 - u_i^2)^2}}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)^2}}
 ```
 
 # Examples
@@ -213,7 +213,7 @@ Compute the biweight scale of the variable. This is the same as the square-root 
 
 
 ```math
-\\hat{\\sigma} = \\frac{\\sqrt{\\sum_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}}
+\\hat{\\sigma} = \\frac{\\sqrt{n\\sum^n_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}}{\\sum^n_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}}
 ```
 
 # Examples
@@ -245,7 +245,7 @@ scale(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> sqrt(biweight_mi
 Compute the biweight midvariance of the variable.
 
 ```math
-\\hat{\\sigma^2} = \\frac{\\sum_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}{\\left[\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\right]^2}
+\\hat{\\sigma^2} = \\frac{n\\sum^n_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}{\\left[\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\right]^2}
 ```
 
 # Examples
@@ -296,7 +296,7 @@ Computes biweight midcovariance between the two vectors. If only one vector is p
     `NaN` and `Inf` cannot be removed in the covariance calculation, so the returned value will be `NaN`
 
 ```math
-\\hat{\\sigma}^2 = \\frac{\\sum_{u_i^2 \\le 1}{(x_i - \\bar{x})(1 - u_i^2)^2}\\sum_{v_i^2 \\le 1}{(y_i - \\bar{y})(1 - v_i^2)^2}}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\sum_{v_i^2 \\le 1}{(1 - v_i^2)(1 - 5v_i^2)}}
+\\hat{\\sigma}_{xy} = \\frac{\\sum_{u_i^2 \\le 1,v_i^2 \\le 1}{(x_i - \\bar{x})(1 - u_i^2)^2(y_i - \\bar{y})(1 - v_i^2)^2}}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\sum_{v_i^2 \\le 1}{(1 - v_i^2)(1 - 5v_i^2)}}
 ```
 
 # Examples
