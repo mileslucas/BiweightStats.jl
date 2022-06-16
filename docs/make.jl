@@ -19,12 +19,7 @@ makedocs(;
         canonical="https://mileslucas.github.io/BiweightStats.jl",
         assets=String[],
     ),
-    pages=[
-        "Home" => "index.md",
-    ],
+    pages=["Home" => "index.md"],
 )
 
-deploydocs(;
-    repo="github.com/mileslucas/BiweightStats.jl",
-    devbranch="main",
-)
+deploydocs(; repo="github.com/mileslucas/BiweightStats.jl", devbranch="main")

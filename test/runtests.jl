@@ -20,7 +20,7 @@ rng = StableRNG(1123)
     @testset "location" begin
         X = randn(rng, 10000)
         val = location(X)
-        @test val ≈ 0 atol=1e-2
+        @test val ≈ 0 atol = 1e-2
 
         X = ones(10)
         val = location(X)
@@ -39,7 +39,7 @@ rng = StableRNG(1123)
         # NaN/Inf
         for v in (NaN, Inf)
             val = location([1, 2, 3, v, 2])
-            @test val ≈ 2 atol=1e-5
+            @test val ≈ 2 atol = 1e-5
         end
     end
 
@@ -59,7 +59,7 @@ rng = StableRNG(1123)
     @testset "midvar" begin
         X = randn(rng, 10000)
         val = midvar(X)
-        @test val ≈ 1 atol=3e-2
+        @test val ≈ 1 atol = 3e-2
 
         # trivial variance
         @test midvar(zeros(100)) ≈ 0
@@ -74,12 +74,12 @@ rng = StableRNG(1123)
 
         # outlier
         val = midvar([1, 2, 3, 500, 2])
-        @test val ≈ 0.51266 atol=1e-5
+        @test val ≈ 0.51266 atol = 1e-5
 
         # NaN/Inf
         for v in (NaN, Inf)
             val = midvar([1, 2, 3, v, 2])
-            @test val ≈ 0.55472 atol=1e-5
+            @test val ≈ 0.55472 atol = 1e-5
         end
     end
 
@@ -89,7 +89,7 @@ rng = StableRNG(1123)
         @test val ≈ midvar(X)
         Y = randn(rng, size(X))
         val = midcov(X, Y)
-        @test val ≈ 0 atol=2e-2
+        @test val ≈ 0 atol = 2e-2
         # trivial covariance
         @test midcov(zeros(100), zeros(100)) ≈ 0
         @test midcov(ones(100), ones(100)) ≈ 0
@@ -98,9 +98,8 @@ rng = StableRNG(1123)
         X = [1, 2, 3, 500, 2]
         Y = [2, 500, 3, 2, 1]
         val = midcov(X, Y)
-        @test val ≈ 0.35061 atol=1e-5
+        @test val ≈ 0.35061 atol = 1e-5
 
-        
         mat = midcov([X Y])
         @test mat[1, 1] == midvar(X)
         @test mat[2, 2] == midvar(Y)
@@ -121,19 +120,17 @@ rng = StableRNG(1123)
         X = randn(rng, 10000)
         Y = randn(rng, 10000)
         val = midcor(X, Y)
-        @test val ≈ 0 atol=2e-2
+        @test val ≈ 0 atol = 2e-2
         # trivial correlation
         @test midcor(X, X) ≈ 1
         @test isnan(midcor(ones(100), ones(100)))
-        
 
         # outlier
         X = [1, 2, 3, 500, 2]
         Y = [2, 500, 3, 2, 1]
         val = midcor(X, Y)
-        @test val ≈ 0.68391 atol=1e-5
+        @test val ≈ 0.68391 atol = 1e-5
 
-        
         mat = midcor([X Y])
         @test mat[1, 1] == mat[2, 2] == 1
         @test mat[1, 2] == mat[2, 1] == midcor(X, Y)

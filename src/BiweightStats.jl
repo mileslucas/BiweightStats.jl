@@ -10,6 +10,7 @@ The basis of the biweight transform is robust analysis, that is, statistics whic
 ```math
 \\mathrm{MAD}(X) = \\mathrm{median}\\left|X_i - \\bar{X}\\right|
 ```
+
 where ``\\bar{X}`` is the median.
 
 The biweight transform improves upon these estimates by filtering out data beyond a critical cutoff. The analogy is doing a sigma-filter, but using these robust statistics instead of the standard deviation and mean.
@@ -28,14 +29,13 @@ The cutoff factor, ``c``, can be directly related to a Gaussian standard-deviati
 
 [^1]: [NIST: biweight](https://www.itl.nist.gov/div898/software/dataplot/refman2/ch2/biweight.pdf)
 [^2]: [Median absolute deviation](https://en.wikipedia.org/wiki/Median_absolute_deviation#Relation_to_standard_deviation)
-
 # Methods
 
-- [`location`](@ref)
-- [`scale`](@ref)
-- [`midvar`](@ref)
-- [`midcov`](@ref)
-- [`midcor`](@ref)
+  - [`location`](@ref)
+  - [`scale`](@ref)
+  - [`midvar`](@ref)
+  - [`midcov`](@ref)
+  - [`midcor`](@ref)
 """
 module BiweightStats
 
@@ -59,6 +59,7 @@ Creates an iterator based on the biweight transform.[^1] This iterator will firs
 ```jldoctest transform
 julia> X = randn(rng, 100);
 
+
 julia> X[10] = 1e4 # add clear outlier
 10000.0
 
@@ -69,15 +70,19 @@ julia> X[25] = Inf # add Inf
 Inf
 
 julia> bt = BiweightTransform(X);
+
 ```
 
 !!! warning "Advanced usage"
+    
     This transform iterator is used for the internal calculations in `BiweightStats.jl`, which is why it has a somewhat complicated iterator implementation.
 
 Lets confirm all the entries are finite. The iteration interface is divided into
+
 ```julia
 (d, u2, flag), state = iterate(bt, [state])
 ```
+
 where `d` is the data value minus `M`, `u2` is `(d / (c * MAD))^2`, and `flag` is whether the value is within the transformed dataset.
 
 ```jldoctest transform
@@ -157,6 +162,7 @@ Calculate the biweight location, a robust measure of location.
 ```jldoctest
 julia> X = 10 .* randn(rng, 1000) .+ 50;
 
+
 julia> location(X)
 49.98008021468018
 ```
@@ -170,7 +176,7 @@ X = 10 .* randn(rng, 1000) .+ 50
 ystar = ystar_old = location(X)
 tol = 1e-6
 maxiter = 10
-for _ in 1:maxiter
+for _ = 1:maxiter
     global ystar = location(X; M=ystar_old)
     isapprox(ystar_old, ystar; atol=tol) && break
     global ystar_old = ystar
@@ -178,17 +184,20 @@ end
 ystar
 
 # output
+
 49.991666155308145
 ```
 
 # References
 
-1. [NIST: biweight location](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwloc.htm)
+ 1. [NIST: biweight location](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwloc.htm)
 """
 location(X; maxiter=10, tol=1e-6, kwargs...) = biweight_location(X; maxiter, tol, kwargs...)
 location(X::AbstractArray; dims=:, kwargs...) = location(X, dims; kwargs...)
 location(X::AbstractArray, ::Colon; kwargs...) = biweight_location(X; kwargs...)
-location(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> biweight_location(sl; kwargs...), X; dims)
+function location(X::AbstractArray, dims::Int; kwargs...)
+    return mapslices(sl -> biweight_location(sl; kwargs...), X; dims)
+end
 
 function biweight_location(X; kwargs...)
     T = float(eltype(X))
@@ -204,13 +213,11 @@ function biweight_location(X; kwargs...)
     return num / den
 end
 
-
 """
     scale(X; c=9, M=nothing)
     scale(X::AbstractArray; dims=:, kwargs...)
 
 Compute the biweight scale of the variable. This is the same as the square-root of the midvariance.
-
 
 ```math
 \\hat{\\sigma} = \\frac{\\sqrt{n\\sum^n_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}}{\\sum^n_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}}
@@ -221,13 +228,14 @@ Compute the biweight scale of the variable. This is the same as the square-root 
 ```jldoctest
 julia> X = 10 .* randn(rng, 1000) .+ 50;
 
+
 julia> scale(X)
 10.045813567765071
 ```
 
 # References
 
-1. [NIST: biweight scale](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwscale.htm)
+ 1. [NIST: biweight scale](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwscale.htm)
 
 # See Also
 
@@ -236,7 +244,9 @@ julia> scale(X)
 scale(X; kwargs...) = sqrt(biweight_midvar(X; kwargs...))
 scale(X::AbstractArray; dims=:, kwargs...) = scale(X, dims; kwargs...)
 scale(X::AbstractArray, ::Colon; kwargs...) = sqrt(biweight_midvar(X; kwargs...))
-scale(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> sqrt(biweight_midvar(sl; kwargs...)), X; dims)
+function scale(X::AbstractArray, dims::Int; kwargs...)
+    return mapslices(sl -> sqrt(biweight_midvar(sl; kwargs...)), X; dims)
+end
 
 """
     midvar(X; c=9, M=nothing)
@@ -253,13 +263,14 @@ Compute the biweight midvariance of the variable.
 ```jldoctest
 julia> X = 10 .* randn(rng, 1000) .+ 50;
 
+
 julia> midvar(X)
 100.9183702382928
 ```
 
 # References
 
-1.  [NIST: biweight midvariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidv.htm)
+ 1. [NIST: biweight midvariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidv.htm)
 
 # See Also
 
@@ -268,7 +279,9 @@ julia> midvar(X)
 midvar(X; kwargs...) = biweight_midvar(X; kwargs...)
 midvar(X::AbstractArray; dims=:, kwargs...) = midvar(X, dims; kwargs...)
 midvar(X::AbstractArray, ::Colon; kwargs...) = biweight_midvar(X; kwargs...)
-midvar(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> biweight_midvar(sl; kwargs...), X; dims)
+function midvar(X::AbstractArray, dims::Int; kwargs...)
+    return mapslices(sl -> biweight_midvar(sl; kwargs...), X; dims)
+end
 
 function biweight_midvar(X; kwargs...)
     itr = BiweightTransform(X; kwargs...)
@@ -293,6 +306,7 @@ end
 Computes biweight midcovariance between the two vectors. If only one vector is provided the biweight midvariance will be calculated.
 
 !!! warning
+    
     `NaN` and `Inf` cannot be removed in the covariance calculation, so the returned value will be `NaN`
 
 ```math
@@ -304,6 +318,7 @@ Computes biweight midcovariance between the two vectors. If only one vector is p
 ```jldoctest
 julia> X = 10 .* randn(rng, 1000, 2) .+ 50;
 
+
 julia> midcov(X[:, 1], X[:, 2])
 -1.058463590812247
 
@@ -312,13 +327,14 @@ true
 
 julia> X[3, 2] = NaN;
 
+
 julia> midcov(X[:, 1], X[:, 2])
 NaN
 ```
 
 # References
 
-1. [NIST: biweight midcovariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm)
+ 1. [NIST: biweight midcovariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm)
 
 # See Also
 
@@ -354,12 +370,14 @@ midcov(X; kwargs...) = midvar(X; kwargs...)
 Computes the variance-covariance matrix using the biweight midcovariance. By default, each column is a separate variable, so an `(M, N)` matrix with `dims=1` will create an `(N, N)` covariance matrix. If `dims=2`, though, each row will become a variable, leading to an `(M, M)` covariance matrix.
 
 !!! warning
+    
     `NaN` and `Inf` cannot be removed in the covariance calculation, so the returned value will be `NaN`
 
 # Examples
 
 ```jldoctest
 julia> X = 10 .* randn(rng, 1000, 3) .+ 50;
+
 
 julia> C = midcov(X)
 3×3 Matrix{Float64}:
@@ -373,13 +391,13 @@ julia> size(midcov(X; dims=2))
 
 # References
 
-1. [NIST: biweight midcovariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm)
+ 1. [NIST: biweight midcovariance](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidc.htm)
 
 # See Also
 
 [`scale`](@ref), [`midvar`](@ref), [`midcor`](@ref)
 """
-function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where T
+function midcov(X::AbstractMatrix{T}; dims=1, kwargs...) where {T}
     vardim = dims == 1 ? 2 : 1
     out = zeros(float(T), size(X, vardim), size(X, vardim))
 
@@ -410,6 +428,7 @@ Compute the correlation between two variables using the midvariance and midcovar
 ```math
 \\frac{s_{xy}}{\\sqrt{s_{xx} \\cdot s_{yy}}}
 ```
+
 where ``s_{xx},s_{yy}`` are the midvariances of each vector, and ``s_{xy}`` is the midcovariance of the two vectors.
 
 # Examples
@@ -417,14 +436,15 @@ where ``s_{xx},s_{yy}`` are the midvariances of each vector, and ``s_{xy}`` is t
 ```jldoctest
 julia> X = 10 .* randn(rng, 1000, 2) .+ 50;
 
+
 julia> midcor(X[:, 1], X[:, 2])
 -0.010827077678217934
 ```
 
 # References
 
-1. [Wikipedia](https://en.wikipedia.org/wiki/Biweight_midcorrelation)
-2. [NIST: Biweight midcorrelation](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidcr.htm)
+ 1. [Wikipedia](https://en.wikipedia.org/wiki/Biweight_midcorrelation)
+ 2. [NIST: Biweight midcorrelation](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidcr.htm)
 
 # See Also
 
@@ -447,6 +467,7 @@ Computes the correlation matrix using the biweight midcorrealtion. By default, e
 ```jldoctest
 julia> X = 10 .* randn(rng, 1000, 3) .+ 50;
 
+
 julia> C = midcor(X)
 3×3 Matrix{Float64}:
   1.0        -0.0108271  -0.0286201
@@ -459,14 +480,14 @@ julia> size(midcor(X; dims=2))
 
 # References
 
-1. [Wikipedia](https://en.wikipedia.org/wiki/Biweight_midcorrelation)
-2. [NIST: Biweight midcorrelation](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidcr.htm)
+ 1. [Wikipedia](https://en.wikipedia.org/wiki/Biweight_midcorrelation)
+ 2. [NIST: Biweight midcorrelation](https://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidcr.htm)
 
 # See Also
 
 [`midvar`](@ref), [`midcov`](@ref), [`scale`](@ref)
 """
-function midcor(X::AbstractMatrix{V}; dims=1, kwargs...) where V
+function midcor(X::AbstractMatrix{V}; dims=1, kwargs...) where {V}
     vardim = dims == 1 ? 2 : 1
     T = float(V)
     out = zeros(T, size(X, vardim), size(X, vardim))
