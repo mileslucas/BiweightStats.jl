@@ -51,7 +51,7 @@ The following statistics are defined as methods. For more information, see the [
 
 * [astropy.stats](https://github.com/astropy/astropy)
 
-    Python implementations of all the statistics presented here. Some slight differences in the function signatures and the implementations are independent.
+    Python implementations of all the statistics presented here. There are some slight differences in the function signatures, including the default cutoff value `c` (for some statistics).
 
 ## Contributing and Support
 
