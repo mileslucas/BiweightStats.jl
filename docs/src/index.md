@@ -32,34 +32,76 @@ julia> using BiweightStats
 To exit Pkg mode, just backspace. Once the package is installed it can be imported with
 For more information, see the [Pkg documentation](https://docs.julialang.org/en/v1/stdlib/Pkg/).
 
-## API/Reference
+## Usage
 
-```@docs
-BiweightStats
+The following examples show the biweight [`location`](@ref) and [`scale`](@ref) for a few distributions, and comparing them to the mean and standard deviation.
+
+To run these examples, make sure the following packages need to be installed
+
+```julia
+using Pkg; Pkg.add(["Distributions", "StatsPlots"])
 ```
 
-```@docs
-location
-scale
-midvar
-midcov
-midcor
-BiweightTransform
+```@example dists
+using BiweightStats
+using Distributions: Normal, Logistic, Cauchy, Laplace
+using Statistics
+using StatsPlots
+using Random
+rng = Random.seed!(1001)
 ```
 
-## Related packages
+for all our examples, we'll sample 10,000 points
 
-1. [StatsBase.jl](https://github.com/JuliaStats/StatsBase.jl)
+```@example dists
+N = 10000
+```
 
-    Contains a couple robust statistics, but has no overlapping functionality with this package.
+```@example dists
+function sample_measure_and_plot_dists(rng, dist, N; kwargs...)
+    samples = rand(rng, dist, N)
 
-2. [RobustStats.jl](https://github.com/mrxiaohe/RobustStats.jl)
+    mu = mean(samples)
+    sig = std(samples; mean=mu)
 
-    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`midvar`](@ref), although `bivar` does not have definitions for the statistics across axes of an array.
+    loc = location(samples; c=9)
+    sca = scale(samples; c=9, M=loc)
 
-3. [astropy.stats](https://github.com/astropy/astropy)
+    p = histogram(samples; normalize=true, fill=0.3, c=1, lab="", leg=:topleft, kwargs...)
+    plot!(dist; c=1, lab="", lw=3)
+    vline!([mu loc]; c=[2 3], lab=["mean ± std" "biweight location ± scale"], lw=2)
+    vline!([mu loc] .+ [-sig -sca; sig sca]; c=[2 3], ls=:dash, lab="", lw=2)
+    return p
+end
+```
 
-    Python implementations of all the statistics presented here. Some slight differences in the function signatures and the implementations are independent.
+### Gaussian
+
+```@example dists
+dist = Normal()
+sample_measure_and_plot_dists(rng, dist, N; title="Gaussian")
+```
+
+### Logistic
+
+```@example dists
+dist = Logistic()
+sample_measure_and_plot_dists(rng, dist, N; title="Logistic")
+```
+
+### Cauchy
+
+```@example dists
+dist = Cauchy()
+sample_measure_and_plot_dists(rng, dist, N; title="Cauchy", xlim=(-40, 40))
+```
+
+### Laplace
+
+```@example dists
+dist = Laplace()
+sample_measure_and_plot_dists(rng, dist, N; title="Laplace")
+```
 
 ## Benchmarks
 
@@ -98,6 +140,19 @@ end # hide
 p # hide
 ```
 
+## Related packages
+
+* [StatsBase.jl](https://github.com/JuliaStats/StatsBase.jl)
+
+    Contains a couple robust statistics, but has no overlapping functionality with this package.
+
+* [RobustStats.jl](https://github.com/mrxiaohe/RobustStats.jl)
+
+    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`midvar`](@ref), although `bivar` does not have definitions for the statistics across axes of an array.
+
+* [astropy.stats](https://github.com/astropy/astropy)
+
+    Python implementations of all the statistics presented here. Some slight differences in the function signatures and the implementations are independent.
 
 ## Contributing and Support
 

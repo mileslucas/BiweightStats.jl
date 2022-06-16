@@ -2,7 +2,7 @@
 
 julia_version = "1.8.0-beta2"
 manifest_format = "2.0"
-project_hash = "2fcb99f2922126fb201fdfb650caddf0247f546e"
+project_hash = "323958e7b811a09934a409913eeb590056a63427"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -53,7 +53,7 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 deps = ["Statistics"]
 path = ".."
 uuid = "5bf8a1e9-d5f8-4697-9608-80edd97af0ad"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.Bzip2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]

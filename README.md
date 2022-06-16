@@ -31,7 +31,7 @@ For more information, see the [Pkg documentation](https://docs.julialang.org/en/
 
 ## Methods
 
-The following statistics are defined as methods-
+The following statistics are defined as methods. For more information, see the [online documentation](https://mileslucas.github.io/BiweightStats.jl/dev)
 
 * `location`
 * `scale`
@@ -41,15 +41,15 @@ The following statistics are defined as methods-
 
 ## Related packages
 
-1. [StatsBase.jl](https://github.com/JuliaStats/StatsBase.jl)
+* [StatsBase.jl](https://github.com/JuliaStats/StatsBase.jl)
 
     Contains a couple robust statistics, but has no overlapping functionality with this package.
 
-2. [RobustStats.jl](https://github.com/mrxiaohe/RobustStats.jl)
+* [RobustStats.jl](https://github.com/mrxiaohe/RobustStats.jl)
 
-    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's `midvar`, although `bivar` does not have definitions for the statistics across axes of an array.
+    Contains many more robust statistics primarily based on the WRS R package. Appears to be unmaintained and not updated to Julia v1. The `bivar` function is the same as this package's [`midvar`](@ref), although `bivar` does not have definitions for the statistics across axes of an array.
 
-3. [astropy.stats](https://github.com/astropy/astropy)
+* [astropy.stats](https://github.com/astropy/astropy)
 
     Python implementations of all the statistics presented here. Some slight differences in the function signatures and the implementations are independent.
 

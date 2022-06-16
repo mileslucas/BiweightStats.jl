@@ -54,6 +54,10 @@ end
 
 Creates an iterator based on the biweight transform.[^1] This iterator will first filter all input data so that only finite values remain. Then, the iteration will progress using a custom state, which includes a flag to indicate whether the value is within the cutoff, which is `c` times the median-absolute-deviation (MAD). The MAD is based on the deviation from `M`, which will default to the median of `X` if `M` is `nothing`.
 
+!!! note "Advanced usage"
+    
+    This transform iterator is used for the internal calculations in `BiweightStats.jl`, which is why it has a somewhat complicated iterator implementation.
+
 # Examples
 
 ```jldoctest transform
@@ -72,10 +76,6 @@ Inf
 julia> bt = BiweightTransform(X);
 
 ```
-
-!!! warning "Advanced usage"
-    
-    This transform iterator is used for the internal calculations in `BiweightStats.jl`, which is why it has a somewhat complicated iterator implementation.
 
 Lets confirm all the entries are finite. The iteration interface is divided into
 
@@ -173,15 +173,17 @@ You can iteratively refine the location estimate by manually passing the median,
 
 ```jldoctest
 X = 10 .* randn(rng, 1000) .+ 50
-ystar = ystar_old = location(X)
-tol = 1e-6
-maxiter = 10
-for _ = 1:maxiter
-    global ystar = location(X; M=ystar_old)
-    isapprox(ystar_old, ystar; atol=tol) && break
-    global ystar_old = ystar
+let ystar, ystar_old
+    ystar = ystar_old = location(X)
+    tol = 1e-6
+    maxiter = 10
+    for _ = 1:maxiter
+        ystar = location(X; M=ystar_old)
+        isapprox(ystar_old, ystar; atol=tol) && break
+        ystar_old = ystar
+    end
+    ystar
 end
-ystar
 
 # output
 
@@ -305,13 +307,13 @@ end
 
 Computes biweight midcovariance between the two vectors. If only one vector is provided the biweight midvariance will be calculated.
 
-!!! warning
-    
-    `NaN` and `Inf` cannot be removed in the covariance calculation, so the returned value will be `NaN`
-
 ```math
 \\hat{\\sigma}_{xy} = \\frac{\\sum_{u_i^2 \\le 1,v_i^2 \\le 1}{(x_i - \\bar{x})(1 - u_i^2)^2(y_i - \\bar{y})(1 - v_i^2)^2}}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\sum_{v_i^2 \\le 1}{(1 - v_i^2)(1 - 5v_i^2)}}
 ```
+
+!!! warning
+    
+    `NaN` and `Inf` cannot be removed in the covariance calculation, so if they are present the returned value will be `NaN`. To prevent this, consider imputing values for the non-finite data.
 
 # Examples
 
@@ -371,7 +373,7 @@ Computes the variance-covariance matrix using the biweight midcovariance. By def
 
 !!! warning
     
-    `NaN` and `Inf` cannot be removed in the covariance calculation, so the returned value will be `NaN`
+    `NaN` and `Inf` cannot be removed in the covariance calculation, so if they are present the returned value will be `NaN`. To prevent this, consider imputing values for the non-finite data.
 
 # Examples
 
