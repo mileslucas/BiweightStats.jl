@@ -1,7 +1,7 @@
 using BenchmarkTools
 using BiweightStats
 using CSV
-using ProgressMeter
+using ProgressLogging
 using PythonCall
 using Random
 
@@ -14,11 +14,11 @@ N = 10 .^ (1:5)
 
 rows = []
 @info "Starting benchmark"
-@showprogress "Benchmarking" for n in N
+@progress "Benchmarking" for n in N
     X = randn(rng, n)
     Y = randn(rng, n)
 
-    t_jl = @belapsed location($X; c=9, maxiter=1)
+    t_jl = @belapsed location($X; c=9)
     t_py = @belapsed aps.biweight_location($X; c=9)
     push!(rows, (;n, name="location", t_jl, t_py))
     @info "location - $n" t_jl t_py
