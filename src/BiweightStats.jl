@@ -143,22 +143,42 @@ function _biweight_iterate(bt, data)
 end
 
 """
-    location(X; c=9, maxiter=10, tol=1e-6)
+    location(X; c=9, M=nothing)
     location(X::AbstractArray; dims=:, kwargs...)
 
-Iteratively calculate the biweight location, a robust measure of location.
+Calculate the biweight location, a robust measure of location.
 
-# Stopping Criteria
-
-The location will be refined until `maxiter` is reached or until the absolute change between estimates is below `tol`.
+```math
+\\hat{y} = \\frac{\\sum_{u_i^2 \\le 1}{y_i(1 - u_i^2)^2}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)^2}}
+```
 
 # Examples
 
 ```jldoctest
-julia> X = 10 .* randn(rng, 10) .+ 50;
+julia> X = 10 .* randn(rng, 1000) .+ 50;
 
 julia> location(X)
-52.961650942043484
+49.98008021468018
+```
+
+## Iterative refinement
+
+You can iteratively refine the location estimate by manually passing the median, like so-
+
+```jldoctest
+X = 10 .* randn(rng, 1000) .+ 50
+ystar = ystar_old = location(X)
+tol = 1e-6
+maxiter = 10
+for _ in 1:maxiter
+    global ystar = location(X; M=ystar_old)
+    isapprox(ystar_old, ystar; atol=tol) && break
+    global ystar_old = ystar
+end
+ystar
+
+# output
+49.991666155308145
 ```
 
 # References
@@ -170,27 +190,18 @@ location(X::AbstractArray; dims=:, kwargs...) = location(X, dims; kwargs...)
 location(X::AbstractArray, ::Colon; kwargs...) = biweight_location(X; kwargs...)
 location(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> biweight_location(sl; kwargs...), X; dims)
 
-function biweight_location(X; maxiter=10, tol=1e-6, kwargs...)
+function biweight_location(X; kwargs...)
     T = float(eltype(X))
-    ystar = median(Iterators.filter(isfinite, X))
-    ystar_old = ystar
+    itr = BiweightTransform(X; kwargs...)
     num = zero(T)
     den = zero(T)
-    for _ in 1:maxiter
-        itr = BiweightTransform(X; kwargs..., M=ystar)
-        num = zero(T)
-        den = zero(T)
-        for (d, u2, flag) in itr
-            flag || continue
-            w = (1 - u2)^2
-            num += w * (d + itr.med)
-            den += w
-        end
-        ystar_old = ystar
-        ystar = num / den
-        isapprox(ystar, ystar_old, atol=tol) && break
+    for (d, u2, flag) in itr
+        flag || continue
+        w = (1 - u2)^2
+        num += w * (d + itr.med)
+        den += w
     end
-    return ystar
+    return num / den
 end
 
 
@@ -198,15 +209,20 @@ end
     scale(X; c=9, M=nothing)
     scale(X::AbstractArray; dims=:, kwargs...)
 
-Compute the biweight scale of the variable. This is different than the square-root of the midvariance.
+Compute the biweight scale of the variable. This is the same as the square-root of the midvariance.
+
+
+```math
+\\hat{\\sigma} = \\frac{\\sqrt{\\sum_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}}
+```
 
 # Examples
 
 ```jldoctest
-julia> X = 10 .* randn(rng, 10) .+ 50;
+julia> X = 10 .* randn(rng, 1000) .+ 50;
 
 julia> scale(X)
-10.735741197627927
+10.045813567765071
 ```
 
 # References
@@ -228,13 +244,17 @@ scale(X::AbstractArray, dims::Int; kwargs...) = mapslices(sl -> sqrt(biweight_mi
 
 Compute the biweight midvariance of the variable.
 
+```math
+\\hat{\\sigma^2} = \\frac{\\sum_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}{\\left[\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\right]^2}
+```
+
 # Examples
 
 ```jldoctest
-julia> X = 10 .* randn(rng, 10) .+ 50;
+julia> X = 10 .* randn(rng, 1000) .+ 50;
 
 julia> midvar(X)
-115.25613906244553
+100.9183702382928
 ```
 
 # References
@@ -275,13 +295,17 @@ Computes biweight midcovariance between the two vectors. If only one vector is p
 !!! warning
     `NaN` and `Inf` cannot be removed in the covariance calculation, so the returned value will be `NaN`
 
+```math
+\\hat{\\sigma}^2 = \\frac{\\sum_{u_i^2 \\le 1}{(x_i - \\bar{x})(1 - u_i^2)^2}\\sum_{v_i^2 \\le 1}{(y_i - \\bar{y})(1 - v_i^2)^2}}{\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\sum_{v_i^2 \\le 1}{(1 - v_i^2)(1 - 5v_i^2)}}
+```
+
 # Examples
 
 ```jldoctest
-julia> X = 10 .* randn(rng, 10, 2) .+ 50;
+julia> X = 10 .* randn(rng, 1000, 2) .+ 50;
 
 julia> midcov(X[:, 1], X[:, 2])
--17.88519840507064
+-1.058463590812247
 
 julia> midcov(X[:, 1]) ≈ midvar(X[:, 1])
 true
@@ -335,21 +359,16 @@ Computes the variance-covariance matrix using the biweight midcovariance. By def
 # Examples
 
 ```jldoctest
-julia> X = 10 .* randn(rng, 5, 3) .+ 50;
+julia> X = 10 .* randn(rng, 1000, 3) .+ 50;
 
 julia> C = midcov(X)
 3×3 Matrix{Float64}:
- 198.722  -10.721   151.942
- -10.721   50.4328  -49.7557
- 151.942  -49.7557  365.47
+ 100.918    -1.05846    -2.88515
+  -1.05846  94.702      -0.490742
+  -2.88515  -0.490742  100.699
 
-julia> midcov(X; dims=2)
-5×5 Matrix{Float64}:
-  47.1121  101.961    26.743    61.7125  -11.8924
- 101.961   220.758    60.4261  132.277   -25.4905
-  26.743    60.4261  295.018   -58.5718   70.2128
-  61.7125  132.277   -58.5718  114.787   -38.5369
- -11.8924  -25.4905   70.2128  -38.5369   27.1058
+julia> size(midcov(X; dims=2))
+(1000, 1000)
 ```
 
 # References
@@ -396,10 +415,10 @@ where ``s_{xx},s_{yy}`` are the midvariances of each vector, and ``s_{xy}`` is t
 # Examples
 
 ```jldoctest
-julia> X = 10 .* randn(rng, 10, 2) .+ 50;
+julia> X = 10 .* randn(rng, 1000, 2) .+ 50;
 
 julia> midcor(X[:, 1], X[:, 2])
--0.12656911189766995
+-0.010827077678217934
 ```
 
 # References
@@ -426,21 +445,16 @@ Computes the correlation matrix using the biweight midcorrealtion. By default, e
 # Examples
 
 ```jldoctest
-julia> X = 10 .* randn(rng, 5, 3) .+ 50;
+julia> X = 10 .* randn(rng, 1000, 3) .+ 50;
 
 julia> C = midcor(X)
 3×3 Matrix{Float64}:
-  1.0       -0.107092   0.563805
- -0.107092   1.0       -0.366489
-  0.563805  -0.366489   1.0
+  1.0        -0.0108271  -0.0286201
+ -0.0108271   1.0        -0.0050253
+ -0.0286201  -0.0050253   1.0
 
-julia> midcor(X; dims=2)
-5×5 Matrix{Float64}:
-  1.0        0.999789   0.22684    0.83919   -0.332791
-  0.999789   1.0        0.236778   0.830955  -0.329525
-  0.22684    0.236778   1.0       -0.318286   0.785165
-  0.83919    0.830955  -0.318286   1.0       -0.690874
- -0.332791  -0.329525   0.785165  -0.690874   1.0
+julia> size(midcor(X; dims=2))
+(1000, 1000)
 ```
 
 # References
