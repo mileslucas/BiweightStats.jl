@@ -257,7 +257,7 @@ end
 Compute the biweight midvariance of the variable.
 
 ```math
-\\hat{\\sigma^2} = \\frac{n\\sum^n_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}{\\left[\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\right]^2}
+\\hat{\\sigma}^2 = \\frac{n\\sum^n_{u_i^2 \\le 1}{(y_i - \\bar{y})^2(1 - u_i^2)^4}}{\\left[\\sum_{u_i^2 \\le 1}{(1 - u_i^2)(1 - 5u_i^2)}\\right]^2}
 ```
 
 # Examples
