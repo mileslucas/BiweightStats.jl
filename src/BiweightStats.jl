@@ -55,7 +55,7 @@ end
 Creates an iterator based on the biweight transform.[^1] This iterator will first filter all input data so that only finite values remain. Then, the iteration will progress using a custom state, which includes a flag to indicate whether the value is within the cutoff, which is `c` times the median-absolute-deviation (MAD). The MAD is based on the deviation from `M`, which will default to the median of `X` if `M` is `nothing`.
 
 !!! note "Advanced usage"
-    
+
     This transform iterator is used for the internal calculations in `BiweightStats.jl`, which is why it has a somewhat complicated iterator implementation.
 
 # Examples
@@ -106,6 +106,10 @@ julia> (d, u2, flag), _ = iterate(bt, 10)
 """
 function BiweightTransform(X; c=9, M=nothing)
     data = filter(isfinite, X)
+    # if no valid input return NaN
+    if isempty(data)
+        return BiweightTransform(NaN, NaN, NaN)
+    end
     if isnothing(M)
         med = median(data)
     else
@@ -312,7 +316,7 @@ Computes biweight midcovariance between the two vectors. If only one vector is p
 ```
 
 !!! warning
-    
+
     `NaN` and `Inf` cannot be removed in the covariance calculation, so if they are present the returned value will be `NaN`. To prevent this, consider imputing values for the non-finite data.
 
 # Examples
@@ -372,7 +376,7 @@ midcov(X; kwargs...) = midvar(X; kwargs...)
 Computes the variance-covariance matrix using the biweight midcovariance. By default, each column is a separate variable, so an `(M, N)` matrix with `dims=1` will create an `(N, N)` covariance matrix. If `dims=2`, though, each row will become a variable, leading to an `(M, M)` covariance matrix.
 
 !!! warning
-    
+
     `NaN` and `Inf` cannot be removed in the covariance calculation, so if they are present the returned value will be `NaN`. To prevent this, consider imputing values for the non-finite data.
 
 # Examples
