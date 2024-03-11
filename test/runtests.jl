@@ -41,6 +41,10 @@ rng = StableRNG(1123)
             val = location([1, 2, 3, v, 2])
             @test val ≈ 2 atol = 1e-5
         end
+
+        # All NaN
+        val = location([NaN, NaN, NaN])
+        @test isnan(val)
     end
 
     @testset "scale" begin
@@ -81,6 +85,10 @@ rng = StableRNG(1123)
             val = midvar([1, 2, 3, v, 2])
             @test val ≈ 0.55472 atol = 1e-5
         end
+
+        # All NaN
+        val = midvar([NaN, NaN, NaN])
+        @test isnan(val)
     end
 
     @testset "midcov" begin
